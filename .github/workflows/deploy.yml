@@ -1,0 +1,76 @@
+name: Deployment
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'cmd/**'
+      - '**.go'
+      - 'go.mod'
+
+jobs:
+  preparation:
+    name: Setup version numbers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Get previous tag
+        id: previous_tag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+        with:
+          fallback: 0.0.1
+      - name: Get next version
+        id: semver
+        uses: "WyriHaximus/github-action-next-semvers@v1"
+        with:
+          version: ${{ steps.previous_tag.outputs.tag }}
+    outputs:
+      version: ${{ steps.semver.outputs.v_patch }}
+
+  release:
+    name: Create release
+    needs: preparation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.preparation.outputs.version }}
+          name: ${{ needs.preparation.outputs.version }}
+          generate_release_notes: true
+          token: ${{ secrets.MY_TOKEN }}
+
+  deploy:
+    name: Deploy to server
+    needs: [preparation, release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - name: Get previous tag
+        id: previous_tag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+        with:
+          fallback: 0.0.1
+      - name: Build binary
+        run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags='-s -X main.version=${{ steps.previous_tag.outputs.tag }}' -o=./swimmate ./cmd/web
+      - name: Copy binary to server
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "./swimmate"
+          target: "/home/rocky/swimmate"
+      - uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: sudo -n systemctl restart swimmate
