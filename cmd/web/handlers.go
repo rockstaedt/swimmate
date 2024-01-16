@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/rockstaedt/swimmate/ui"
 	"html/template"
 	"log"
 	"net/http"
@@ -13,11 +14,11 @@ func home(w http.ResponseWriter, r *http.Request) {
 	}
 
 	files := []string{
-		"./ui/html/base.tmpl",
-		"./ui/html/pages/home.tmpl",
+		"html/base.tmpl",
+		"html/pages/home.tmpl",
 	}
 
-	ts, err := template.ParseFiles(files...)
+	ts, err := template.ParseFS(ui.Files, files...)
 	if err != nil {
 		log.Print(err.Error())
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
