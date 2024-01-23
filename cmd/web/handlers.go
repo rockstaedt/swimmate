@@ -22,7 +22,12 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = ts.ExecuteTemplate(w, "base", nil)
+	versionTxt := app.version
+	if len(versionTxt) == 0 {
+		versionTxt = "_dev"
+	}
+	data := templateData{Version: versionTxt}
+	err = ts.ExecuteTemplate(w, "base", data)
 	if err != nil {
 		app.serverError(w, r, err)
 	}
