@@ -1,18 +1,28 @@
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-size: 18px;
-    font-family: "Ubuntu Mono", monospace;
+    --color-background: #2a303c;
 }
 
 html, body {
-    height: 100%;
+    max-width: 100vw;
+    font-size: 10px;
+    font-family: Kanit, serif;
 }
 
 body {
-    line-height: 1.5;
-    background-color: #F1F3F6;
-    color: #34495E;
+    padding: 2rem;
     overflow-y: scroll;
+
+    line-height: 1.5;
+    font-size: 2rem;
+
+    background-color: var(--color-background);
+    color: white;
+
+    a {
+        color: white;
+    }
+
+    h1 {
+        text-align: center;
+    }
 }
