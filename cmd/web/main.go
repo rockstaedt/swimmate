@@ -32,8 +32,9 @@ func main() {
 
 	port := ":8998"
 	srv := &http.Server{
-		Addr:    port,
-		Handler: app.routes(),
+		Addr:     port,
+		Handler:  app.routes(),
+		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
 	}
 
 	logger.Info("starting server", "port", port)
