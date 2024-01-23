@@ -9,6 +9,15 @@ type templateData struct {
 	Version string
 }
 
+func (app *application) newTemplateData() templateData {
+	versionTxt := "_dev"
+	if len(app.version) != 0 {
+		versionTxt = app.version
+	}
+
+	return templateData{Version: versionTxt}
+}
+
 func newTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
 
