@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/rockstaedt/swimmate/ui"
 	"log/slog"
 	"net/http"
 	"os"
@@ -18,17 +17,10 @@ func main() {
 		logger: logger,
 	}
 
-	mux := http.NewServeMux()
-
-	fileServer := http.FileServer(http.FS(ui.Files))
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
-
-	mux.HandleFunc("/", app.home)
-
 	port := ":8998"
 	logger.Info("starting server", "port", port)
 
-	err := http.ListenAndServe(port, mux)
+	err := http.ListenAndServe(port, app.routes())
 	logger.Error(err.Error())
 	os.Exit(1)
 }
