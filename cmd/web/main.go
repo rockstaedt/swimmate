@@ -6,15 +6,19 @@ import (
 	"os"
 )
 
+var version string
+
 type application struct {
-	logger *slog.Logger
+	logger  *slog.Logger
+	version string
 }
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
 	app := &application{
-		logger: logger,
+		logger:  logger,
+		version: version,
 	}
 
 	port := ":8998"
