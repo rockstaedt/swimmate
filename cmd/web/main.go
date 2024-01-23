@@ -31,9 +31,14 @@ func main() {
 	}
 
 	port := ":8998"
+	srv := &http.Server{
+		Addr:    port,
+		Handler: app.routes(),
+	}
+
 	logger.Info("starting server", "port", port)
 
-	err = http.ListenAndServe(port, app.routes())
+	err = srv.ListenAndServe()
 	logger.Error(err.Error())
 	os.Exit(1)
 }
