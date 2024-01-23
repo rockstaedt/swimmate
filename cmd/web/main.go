@@ -2,11 +2,14 @@ package main
 
 import (
 	"github.com/rockstaedt/swimmate/ui"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 )
 
 func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
 	mux := http.NewServeMux()
 
 	fileServer := http.FileServer(http.FS(ui.Files))
@@ -14,8 +17,10 @@ func main() {
 
 	mux.HandleFunc("/", home)
 
-	log.Print("starting server on :8998")
+	port := ":8998"
+	logger.Info("starting server", "port", port)
 
-	err := http.ListenAndServe(":8998", mux)
-	log.Fatal(err)
+	err := http.ListenAndServe(port, mux)
+	logger.Error(err.Error())
+	os.Exit(1)
 }
