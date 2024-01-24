@@ -1,4 +1,4 @@
-name: Deployment
+name: CICD
 on:
   push:
     branches:
@@ -8,11 +8,39 @@ on:
       - 'ui/**'
       - '**.go'
       - 'go.mod'
+  pull_request:
 
 jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - name: Run golang static analysis
+        run: go vet ./...
+      - name: Run additional static analysis
+        uses: dominikh/staticcheck-action@v1.2.0
+        with:
+          version: "2022.1.1"
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - run: go build ./...
+
   preparation:
     name: Setup version numbers
     runs-on: ubuntu-latest
+    needs: [test, build]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -45,7 +73,7 @@ jobs:
 
   deploy:
     name: Deploy to server
-    needs: [preparation, release]
+    needs: [ preparation, release ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
