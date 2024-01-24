@@ -12,7 +12,7 @@ type templateData struct {
 }
 
 func (app *application) newTemplateData() templateData {
-	versionTxt := "_dev"
+	versionTxt := "development"
 	if len(app.version) != 0 {
 		versionTxt = app.version
 	}
