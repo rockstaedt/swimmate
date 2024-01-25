@@ -1,5 +1,5 @@
 {{define "base"}}
-<html lang='en'>
+    <html lang='en'>
     <head>
         <meta charset='utf-8'>
         <title>SwimMate</title>
@@ -17,18 +17,22 @@
         <link rel="apple-touch-icon" sizes="180x180" href="/static/img/apple-touch-icon.png">
         <link rel="icon" type="image/png" sizes="32x32" href="/static/img/favicon-32x32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="/static/img/favicon-16x16.png">
-        <link rel="manifest" href="/site.webmanifest">
+        <link rel="manifest" href="/static/img/site.webmanifest">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@100;400&display=swap" rel="stylesheet">
     </head>
     <body>
-        <header>
-            <h1>SwimMate</h1>
-        </header>
-        <main>
-            {{template "main" .}}
-        </main>
-        <footer>
-            Powered by <a href='https://github.com/rockstaedt/'>rockstaedt</a> | {{.Version}}
-        </footer>
+    <header>
+        <h1>SwimMate</h1>
+    </header>
+    <main>
+        {{template "main" .}}
+    </main>
+    <footer>
+        Powered by <a href='https://github.com/rockstaedt/'>rockstaedt</a> | {{.Version}}
+    </footer>
     </body>
-</html>
+    </html>
 {{end}}
