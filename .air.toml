@@ -1,0 +1,8 @@
+# .air.toml
+debug = true
+
+[build]
+  cmd = "go build -o /swimmate ./cmd/web"
+  bin = "/swimmate"
+  include_ext = ["go", "tmpl", "html", "css", "js"]
+  watch = ["cmd/web/**/*", "internal/**/*", "ui/**/*"]
