@@ -29,7 +29,7 @@ header {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    margin: 2rem;
+    margin: 4rem 2rem 2rem 2rem;
     padding: 1rem 2rem;
 
     border: solid 0.2rem white;
