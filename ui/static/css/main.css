@@ -1,5 +1,8 @@
 * {
     --color-background: #2a303c;
+    --color-blue-accent: deepskyblue;
+
+    --border-radius: 1rem
 }
 
 html, body {
@@ -11,22 +14,54 @@ html, body {
 }
 
 body {
-    padding: 4rem 2rem;
+    font-size: 1.6rem;
+    margin: 0;
+    padding: 0;
     overflow-y: scroll;
 
-    line-height: 1.5;
-    font-size: 2rem;
 
     background-color: var(--color-background);
     color: white;
+}
 
-    a {
-        color: white;
-    }
+header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin: 2rem;
+    padding: 1rem 2rem;
+
+    border: solid 0.2rem white;
+    border-radius: var(--border-radius);
 
     h1 {
-        text-align: center;
+        margin: 0;
     }
+
+    :last-child {
+        color: var(--color-blue-accent);
+        font-size: 3rem;
+        font-weight: 600;
+    }
+}
+
+main {
+    padding: 1rem 2rem;
+    min-height: 100vh;
+}
+
+footer {
+    text-align: center;
+    padding: 0 2rem 2rem 2rem;
+}
+
+a {
+    color: white;
+}
+
+h1 {
+    text-align: center;
 }
 
 .barlow-condensed-thin {
