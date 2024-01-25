@@ -11,7 +11,7 @@ html, body {
 }
 
 body {
-    padding: 2rem;
+    padding: 4rem 2rem;
     overflow-y: scroll;
 
     line-height: 1.5;
