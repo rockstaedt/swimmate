@@ -23,10 +23,7 @@ body {
     flex-direction: column;
     justify-content: space-between;
     font-size: 1.6rem;
-    margin: 0;
-    padding: 0;
     min-height: 100vh;
-
 
     background-color: var(--color-background);
     color: white;
@@ -37,7 +34,6 @@ header {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    margin: 2rem;
     padding: 1rem 2rem;
 
     border: solid 0.2rem white;
@@ -54,13 +50,8 @@ header {
     }
 }
 
-main {
-    padding: 1rem 2rem;
-}
-
 footer {
     text-align: center;
-    padding: 0 2rem 2rem 2rem;
 }
 
 a {
