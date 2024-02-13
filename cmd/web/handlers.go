@@ -11,7 +11,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w)
 	}
 
-	s, err := app.swims.Get(5)
+	s, err := app.swims.Get()
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
 			app.notFound(w)

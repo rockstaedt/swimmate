@@ -14,7 +14,7 @@ type Swim struct {
 }
 
 type SwimModel interface {
-	Get(id int) (*Swim, error)
+	Get() (*Swim, error)
 }
 
 type swimModel struct {
@@ -25,14 +25,14 @@ func NewSwimModel(db *sql.DB) SwimModel {
 	return &swimModel{DB: db}
 }
 
-func (sw *swimModel) Get(id int) (*Swim, error) {
-	stmt := `SELECT id, date, distance_m, assessment FROM tracks_track WHERE id = $1`
+func (sw *swimModel) Get() (*Swim, error) {
+	stmt := `SELECT date, distance_m, assessment FROM tracks_track ORDER BY date ASC LIMIT 1;`
 
-	row := sw.DB.QueryRow(stmt, id)
+	row := sw.DB.QueryRow(stmt)
 
 	var s Swim
 
-	err := row.Scan(&s.Id, &s.Date, &s.DistanceM, &s.Assessment)
+	err := row.Scan(&s.Date, &s.DistanceM, &s.Assessment)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return &Swim{}, ErrNoRecord
