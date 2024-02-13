@@ -26,7 +26,7 @@ func NewSwimModel(db *sql.DB) SwimModel {
 }
 
 func (sw *swimModel) Get(id int) (*Swim, error) {
-	stmt := `SELECT id, date, distance_m, assessment FROM swims WHERE id = $1`
+	stmt := `SELECT id, date, distance_m, assessment FROM tracks_track WHERE id = $1`
 
 	row := sw.DB.QueryRow(stmt, id)
 
