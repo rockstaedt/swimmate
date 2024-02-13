@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 )
 
@@ -33,7 +34,11 @@ func (sw *swimModel) Get(id int) (*Swim, error) {
 
 	err := row.Scan(&s.Id, &s.Date, &s.DistanceM, &s.Assessment)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return &Swim{}, ErrNoRecord
+		} else {
+			return &Swim{}, err
+		}
 	}
 
 	return &s, nil
