@@ -1,10 +1,15 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"html/template"
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
+
+	_ "github.com/lib/pq"
 )
 
 var version string
@@ -24,6 +29,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	db, err := openDB()
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	logger.Info("database connection pool established")
+
 	app := &application{
 		logger:        logger,
 		templateCache: templateCache,
@@ -42,4 +56,22 @@ func main() {
 	err = srv.ListenAndServe()
 	logger.Error(err.Error())
 	os.Exit(1)
+}
+
+func openDB() (*sql.DB, error) {
+	db, err := sql.Open("postgres", os.Getenv("DB_DSN"))
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err = db.PingContext(ctx)
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+	// Return the sql.DB connection pool.
+	return db, nil
 }

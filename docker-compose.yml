@@ -5,6 +5,8 @@ services:
     container_name: swimmate
     image: cosmtrek/air
     working_dir: /app
+    environment:
+      - DB_DSN=postgres://swimmate:swimmate@swimmate-db:5432/swimmate?sslmode=disable
     ports:
       - "8998:8998"
     volumes:
