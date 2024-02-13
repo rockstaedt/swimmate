@@ -1,7 +1,18 @@
 {{define "title"}}Home{{end}}
 {{define "main"}}
-    <h2>Latest Swims</h2>
-    <p>There's nothing to see here yet!</p>
-    <p>Be patient :)</p>
-    <h3> {{ .Swim.Date }}</h3>
+    <h2>My first tracked swim</h2>
+    <div class="swim-track">
+        <div>
+            <h3>Date</h3>
+            <p>{{ .Swim.Date }}</p>
+        </div>
+        <div>
+            <h3>Distance</h3>
+            <p>{{ .Swim.DistanceM }}m</p>
+        </div>
+        <div>
+            <h3>Assessment</h3>
+            <p>{{ .Swim.Assessment }}</p>
+        </div>
+    </div>
 {{end}}
