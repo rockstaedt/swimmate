@@ -21,7 +21,8 @@ html, body {
 body {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: stretch;
+    padding: 3rem;
     font-size: 1.6rem;
     min-height: 100vh;
 
@@ -41,6 +42,7 @@ header {
 
     h1 {
         margin: 0;
+        text-align: center;
     }
 
     :last-child {
@@ -50,16 +52,16 @@ header {
     }
 }
 
+main {
+    padding: 1rem;
+}
+
 footer {
     text-align: center;
 }
 
 a {
     color: white;
-}
-
-h1 {
-    text-align: center;
 }
 
 .swim-track {
