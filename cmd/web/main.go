@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"github.com/rockstaedt/swimmate/internal/models"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -16,6 +17,7 @@ var version string
 
 type application struct {
 	logger        *slog.Logger
+	swims         models.SwimModel
 	templateCache map[string]*template.Template
 	version       string
 }
@@ -42,6 +44,7 @@ func main() {
 		logger:        logger,
 		templateCache: templateCache,
 		version:       version,
+		swims:         models.NewSwimModel(db),
 	}
 
 	port := ":8998"
