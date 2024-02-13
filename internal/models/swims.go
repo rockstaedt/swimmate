@@ -2,11 +2,12 @@ package models
 
 import (
 	"database/sql"
+	"time"
 )
 
 type Swim struct {
 	Id         int
-	Date       string
+	Date       time.Time
 	DistanceM  int
 	Assessment int
 }
