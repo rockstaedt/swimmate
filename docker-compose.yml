@@ -2,9 +2,23 @@ version: "2.4"
 
 services:
   swimmate:
+    container_name: swimmate
     image: cosmtrek/air
     working_dir: /app
     ports:
       - "8998:8998"
     volumes:
       - ./:/app
+  swimmate-db:
+    container_name: swimmate-db
+    image: postgres:14
+    environment:
+      POSTGRES_USER: swimmate
+      POSTGRES_PASSWORD: swimmate
+      POSTGRES_DB: swimmate
+    ports:
+      - "5432:5432"
+    volumes:
+      - swimmate-data:/var/lib/postgresql/data
+volumes:
+    swimmate-data:
