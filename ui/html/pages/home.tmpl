@@ -1,18 +1,29 @@
 {{define "title"}}Home{{end}}
 {{define "main"}}
-    <h2>My first tracked swim</h2>
-    <div class="swim-track">
-        <div>
-            <h3>Date</h3>
-            <p>{{ .Swim.Date }}</p>
+    <div class="dashboard">
+        <div class="dashboard-entry">
+            <h3>Total Swims</h3>
+            <p>{{ .Data.TotalCount }}</p>
         </div>
-        <div>
-            <h3>Distance</h3>
-            <p>{{ .Swim.DistanceM }}m</p>
+        <div class="dashboard-entry">
+            <h3>Total Distance</h3>
+            <p>{{ .Data.TotalDistance }}</p>
         </div>
-        <div>
-            <h3>Assessment</h3>
-            <p>{{ .Swim.Assessment }}</p>
+        <div class="dashboard-entry">
+            <h3>Monthly Count</h3>
+            <p>{{ .Data.MonthlyCount}}</p>
+        </div>
+        <div class="dashboard-entry">
+            <h3>Monthly Distance</h3>
+            <p>{{ .Data.MonthlyDistance }}</p>
+        </div>
+        <div class="dashboard-entry">
+            <h3>Weekly Count</h3>
+            <p>{{ .Data.WeeklyCount }}</p>
+        </div>
+        <div class="dashboard-entry">
+            <h3>Weekly Distance</h3>
+            <p>{{ .Data.WeeklyDistance }}</p>
         </div>
     </div>
 {{end}}

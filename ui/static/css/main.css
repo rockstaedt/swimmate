@@ -53,7 +53,21 @@ header {
 }
 
 main {
-    padding: 1rem;
+    margin: 2rem 0;
+
+    .dashboard {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        column-gap: 1rem;
+        row-gap: 1rem;
+
+        .dashboard-entry {
+            padding: 1rem;
+            border: solid 0.2rem white;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+    }
 }
 
 footer {
@@ -62,18 +76,6 @@ footer {
 
 a {
     color: white;
-}
-
-.swim-track {
-    > div {
-        display: flex;
-        flex-direction: row;
-        justify-content: start;
-
-        > p {
-            margin-left: 2rem
-        }
-    }
 }
 
 .barlow-condensed-thin {
