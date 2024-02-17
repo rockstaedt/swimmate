@@ -40,12 +40,18 @@ header {
     border: solid 0.2rem white;
     border-radius: var(--border-radius);
 
-    h1 {
-        margin: 0;
-        text-align: center;
+    > a {
+        color: inherit;
+        text-decoration: none;
+        outline: none;
+
+        h1 {
+            margin: 0;
+            text-align: center;
+        }
     }
 
-    :last-child {
+    > :last-child {
         color: var(--color-blue-accent);
         font-size: 3rem;
         font-weight: 600;
