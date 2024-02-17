@@ -23,3 +23,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 	app.render(w, r, http.StatusOK, "home.tmpl", app.newTemplateData(app.swims.Summarize(swims)))
 }
+
+func (app *application) createSwim(w http.ResponseWriter, r *http.Request) {
+	app.render(w, r, http.StatusOK, "swim-create.tmpl", app.newTemplateData(nil))
+}

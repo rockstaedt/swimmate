@@ -18,6 +18,7 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodGet, "/static/*filepath", fileServer)
 
 	router.HandlerFunc(http.MethodGet, "/", app.home)
+	router.HandlerFunc(http.MethodGet, "/swim", app.createSwim)
 
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 
