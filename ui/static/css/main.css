@@ -56,6 +56,10 @@ main {
     margin: auto 0;
     overflow: auto;
 
+    p {
+        font-size: 2rem;
+    }
+
     .dashboard {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
