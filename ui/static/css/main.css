@@ -19,12 +19,12 @@ html, body {
 }
 
 body {
-    display: flex;
-    flex-direction: column;
-    justify-content: stretch;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
     padding: 2rem 1rem;
     font-size: 1.6rem;
-    min-height: 100vh;
 
     background-color: var(--color-background);
     color: white;
@@ -54,6 +54,7 @@ header {
 
 main {
     margin: 2rem 0;
+    overflow: auto;
 
     .dashboard {
         display: grid;
@@ -72,10 +73,10 @@ main {
 
 footer {
     text-align: center;
-}
 
-a {
-    color: white;
+    > a {
+        color: white;
+    }
 }
 
 .barlow-condensed-thin {
