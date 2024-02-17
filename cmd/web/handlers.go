@@ -11,7 +11,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w)
 	}
 
-	s, err := app.swims.Get()
+	swims, err := app.swims.GetAll()
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
 			app.notFound(w)
@@ -21,5 +21,5 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.render(w, r, http.StatusOK, "home.tmpl", app.newTemplateData(s))
+	app.render(w, r, http.StatusOK, "home.tmpl", app.newTemplateData(app.swims.Summarize(swims)))
 }
