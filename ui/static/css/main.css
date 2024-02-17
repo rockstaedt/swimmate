@@ -53,7 +53,7 @@ header {
 }
 
 main {
-    margin: 2rem 0;
+    margin: auto 0;
     overflow: auto;
 
     .dashboard {
