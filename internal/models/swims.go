@@ -14,8 +14,12 @@ type Swim struct {
 }
 
 type Summary struct {
-	TotalDistance int
-	Count         int
+	TotalDistance   int
+	TotalCount      int
+	MonthlyDistance int
+	MonthlyCount    int
+	WeeklyDistance  int
+	WeeklyCount     int
 }
 
 type SwimModel interface {
@@ -81,12 +85,33 @@ func (sw *swimModel) GetAll() ([]*Swim, error) {
 
 func (sw *swimModel) Summarize(swims []*Swim) *Summary {
 	var totalDistance int
-	var count int
+	var totalCount int
+	var monthlyDistance int
+	var monthlyCount int
+	var weeklyDistance int
+	var weeklyCount int
 
 	for _, swim := range swims {
 		totalDistance += swim.DistanceM
-		count++
+		totalCount++
+
+		if swim.Date.After(time.Now().AddDate(0, -1, 0)) {
+			monthlyDistance += swim.DistanceM
+			monthlyCount++
+		}
+
+		if swim.Date.After(time.Now().AddDate(0, 0, -7)) {
+			weeklyDistance += swim.DistanceM
+			weeklyCount++
+		}
 	}
 
-	return &Summary{TotalDistance: totalDistance, Count: count}
+	return &Summary{
+		TotalDistance:   totalDistance,
+		TotalCount:      totalCount,
+		MonthlyDistance: monthlyDistance,
+		MonthlyCount:    monthlyCount,
+		WeeklyDistance:  weeklyDistance,
+		WeeklyCount:     weeklyCount,
+	}
 }
