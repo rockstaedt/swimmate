@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io/fs"
 	"path/filepath"
+	"strconv"
 )
 
 type templateData struct {
@@ -21,6 +22,25 @@ func (app *application) newTemplateData(data interface{}) templateData {
 	return templateData{Version: versionTxt, Data: data}
 }
 
+var functions = template.FuncMap{
+	"numberFormat": numberFormat,
+}
+
+func numberFormat(n int) string {
+	sign := ""
+	if n < 0 {
+		sign = "-"
+		n = -n
+	}
+
+	s := strconv.FormatInt(int64(n), 10)
+	for i := len(s) - 3; i > 0; i -= 3 {
+		s = s[:i] + "," + s[i:]
+	}
+
+	return sign + s
+}
+
 func newTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
 
@@ -33,7 +53,7 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		name := filepath.Base(page)
 		patterns := []string{"html/base.tmpl", page}
 
-		ts, errPars := template.New(name).ParseFS(ui.Files, patterns...)
+		ts, errPars := template.New(name).Funcs(functions).ParseFS(ui.Files, patterns...)
 		if errPars != nil {
 			return nil, errPars
 		}
