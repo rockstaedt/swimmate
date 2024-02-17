@@ -22,7 +22,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: stretch;
-    padding: 3rem;
+    padding: 2rem 1rem;
     font-size: 1.6rem;
     min-height: 100vh;
 
