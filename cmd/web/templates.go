@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/rockstaedt/swimmate/internal/models"
 	"github.com/rockstaedt/swimmate/ui"
 	"html/template"
 	"io/fs"
@@ -10,16 +9,16 @@ import (
 
 type templateData struct {
 	Version string
-	Swim    *models.Swim
+	Data    interface{}
 }
 
-func (app *application) newTemplateData(swim *models.Swim) templateData {
+func (app *application) newTemplateData(data interface{}) templateData {
 	versionTxt := "development"
 	if len(app.version) != 0 {
 		versionTxt = app.version
 	}
 
-	return templateData{Version: versionTxt, Swim: swim}
+	return templateData{Version: versionTxt, Data: data}
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {
