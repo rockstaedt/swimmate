@@ -74,6 +74,10 @@ main {
             border-radius: var(--border-radius);
             text-align: center;
         }
+
+        button {
+            margin-top: 2rem;
+        }
     }
 }
 
@@ -85,6 +89,16 @@ a {
     color: inherit;
     text-decoration: none;
     outline: none;
+}
+
+button {
+    grid-column: span 2;
+    height: 5rem;
+    font-size: 2rem;
+    color: white;
+    background-color: var(--color-blue-accent);
+    border-color: var(--color-blue-accent);
+    border-radius: var(--border-radius);
 }
 
 .barlow-condensed-thin {
