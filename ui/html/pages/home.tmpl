@@ -2,27 +2,27 @@
 {{define "main"}}
     <div class="dashboard">
         <div class="dashboard-entry">
-            <h2>Total Swims</h2>
+            <h3>Total Swims</h3>
             <p>{{ .Data.TotalCount }}</p>
         </div>
         <div class="dashboard-entry">
-            <h2>Total Distance</h2>
+            <h3>Total Distance</h3>
             <p>{{ .Data.TotalDistance | numberFormat }} m</p>
         </div>
         <div class="dashboard-entry">
-            <h2>Monthly Count</h2>
+            <h3>Monthly Count</h3>
             <p>{{ .Data.MonthlyCount}}</p>
         </div>
         <div class="dashboard-entry">
-            <h2>Monthly Distance</h2>
+            <h3>Monthly Distance</h3>
             <p>{{ .Data.MonthlyDistance | numberFormat }} m</p>
         </div>
         <div class="dashboard-entry">
-            <h2>Weekly Count</h2>
+            <h3>Weekly Count</h3>
             <p>{{ .Data.WeeklyCount }}</p>
         </div>
         <div class="dashboard-entry">
-            <h2>Weekly Distance</h2>
+            <h3>Weekly Distance</h3>
             <p>{{ .Data.WeeklyDistance | numberFormat }} m</p>
         </div>
         <button><a href="/swim">Add a swim</a></button>
