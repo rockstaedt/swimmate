@@ -43,7 +43,7 @@ func (app *application) storeSwim(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	distanceM, err := strconv.Atoi(r.PostForm.Get("distance"))
+	distanceM, err := strconv.Atoi(r.PostForm.Get("distance_m"))
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
