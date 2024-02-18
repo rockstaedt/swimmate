@@ -33,24 +33,28 @@ func (app *application) createSwim(w http.ResponseWriter, r *http.Request) {
 func (app *application) storeSwim(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
+		app.logger.Error(err.Error())
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
 	date, err := time.Parse("2006-01-02", r.PostForm.Get("date"))
 	if err != nil {
+		app.logger.Error(err.Error())
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
 	distanceM, err := strconv.Atoi(r.PostForm.Get("distance_m"))
 	if err != nil {
+		app.logger.Error(err.Error())
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
 	assessment, err := strconv.Atoi(r.PostForm.Get("assessment"))
 	if err != nil {
+		app.logger.Error(err.Error())
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
