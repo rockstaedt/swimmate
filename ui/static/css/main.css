@@ -62,6 +62,15 @@ main {
     display: flex;
     flex-direction: column;
 
+    > * {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        column-gap: 1rem;
+        row-gap: 1rem;
+        max-width: 32rem;
+        align-self: center;
+    }
+
     p, label {
         font-size: 2rem;
     }
@@ -78,7 +87,6 @@ a {
 }
 
 button {
-    grid-column: span 2;
     height: 5rem;
     font-size: 2rem;
     color: white;
@@ -88,14 +96,8 @@ button {
 }
 
 .dashboard {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    column-gap: 1rem;
-    row-gap: 1rem;
-    max-width: 40rem;
-    align-self: center;
-
     .dashboard-entry {
+        grid-column: span 6;
         padding: 1rem;
         border: solid 0.2rem white;
         border-radius: var(--border-radius);
@@ -106,7 +108,8 @@ button {
         }
     }
 
-    button {
+    > button {
+        grid-column: span 12;
         margin-top: 2rem;
     }
 }
