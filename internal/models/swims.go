@@ -25,6 +25,7 @@ type Summary struct {
 type SwimModel interface {
 	Get() (*Swim, error)
 	GetAll() ([]*Swim, error)
+	Insert(date time.Time, distanceM int, assessment int) error
 	Summarize([]*Swim) *Summary
 }
 
@@ -114,4 +115,15 @@ func (sw *swimModel) Summarize(swims []*Swim) *Summary {
 		WeeklyDistance:  weeklyDistance,
 		WeeklyCount:     weeklyCount,
 	}
+}
+
+func (sw *swimModel) Insert(date time.Time, distanceM int, assessment int) error {
+	stmt := `INSERT INTO tracks_track (date, distance_m, assessment, user_id) VALUES ($1, $2, $3, $4);`
+
+	_, err := sw.DB.Exec(stmt, date, distanceM, assessment, 1)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
