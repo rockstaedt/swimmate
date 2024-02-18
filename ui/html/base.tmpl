@@ -6,7 +6,8 @@
 
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <meta name="format-detection" content="telephone=no">
-        <meta name="viewport" content="initial-scale=1,user-scalable=no,width=device-width,height=device-height,viewport-fit=cover">
+        <meta name="viewport"
+              content="initial-scale=1,user-scalable=no,width=device-width,height=device-height,viewport-fit=cover">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -21,7 +22,8 @@
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@100;400&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@100;400&display=swap"
+              rel="stylesheet">
 
         <script src="https://kit.fontawesome.com/5a7b8770d3.js" crossorigin="anonymous"></script>
         <script src="/static/js/htmx.min.js" type="text/javascript" defer></script>
@@ -38,5 +40,11 @@
         Powered by <a href='https://github.com/rockstaedt/'>rockstaedt</a> | {{.Version}}
     </footer>
     </body>
+    <script>
+        window.addEventListener("scroll", (e) => {
+            e.preventDefault();
+            window.scrollTo(0, 0);
+        });
+    </script>
     </html>
 {{end}}
