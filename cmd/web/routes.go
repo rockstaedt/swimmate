@@ -19,6 +19,7 @@ func (app *application) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodGet, "/", app.home)
 	router.HandlerFunc(http.MethodGet, "/swim", app.createSwim)
+	router.HandlerFunc(http.MethodPost, "/swim", app.storeSwim)
 
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 
