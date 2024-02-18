@@ -1,6 +1,8 @@
 * {
     --color-background: #2a303c;
+    --color-secondary: #a0a0a0;
     --color-blue-accent: deepskyblue;
+    --color-error: red;
 
     --border-radius: 1rem
 }
@@ -58,26 +60,8 @@ main {
     margin: auto 0;
     overflow: auto;
 
-    p {
+    p, label {
         font-size: 2rem;
-    }
-
-    .dashboard {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        column-gap: 1rem;
-        row-gap: 1rem;
-
-        .dashboard-entry {
-            padding: 1rem;
-            border: solid 0.2rem white;
-            border-radius: var(--border-radius);
-            text-align: center;
-        }
-
-        button {
-            margin-top: 2rem;
-        }
     }
 }
 
@@ -99,6 +83,58 @@ button {
     background-color: var(--color-blue-accent);
     border-color: var(--color-blue-accent);
     border-radius: var(--border-radius);
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 1rem;
+    row-gap: 1rem;
+
+    .dashboard-entry {
+        padding: 1rem;
+        border: solid 0.2rem white;
+        border-radius: var(--border-radius);
+        text-align: center;
+    }
+
+    button {
+        margin-top: 2rem;
+    }
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+
+    .form-group {
+        height: 8rem;
+        display: flex;
+        flex-direction: column;
+
+        label {
+            margin-bottom: 1rem;
+        }
+
+        input, select {
+            color: black;
+            font-size: 1.6rem;
+            padding: 0 2rem;
+            height: 5rem;
+            border-radius: var(--border-radius);
+        }
+
+        input[type="date"] {
+            -webkit-appearance: textfield;
+            -moz-appearance: textfield;
+            min-width: 95%;
+        }
+    }
+
+    button {
+        margin-top: 2rem;
+    }
 }
 
 .barlow-condensed-thin {
