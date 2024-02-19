@@ -87,7 +87,10 @@ func (sw *swimModel) GetAll() ([]*Swim, error) {
 func (sw *swimModel) Summarize() *Summary {
 	summary := &Summary{}
 
-	swims, _ := sw.GetAll()
+	swims, err := sw.GetAll()
+	if err != nil {
+		return summary
+	}
 
 	for _, swim := range swims {
 		summary.TotalDistance += swim.DistanceM
