@@ -96,14 +96,18 @@ func (sw *swimModel) Summarize(swims []*Swim) *Summary {
 		totalDistance += swim.DistanceM
 		totalCount++
 
-		if swim.Date.After(time.Now().AddDate(0, -1, 0)) {
-			monthlyDistance += swim.DistanceM
-			monthlyCount++
-		}
-
-		if swim.Date.After(time.Now().AddDate(0, 0, -7)) {
+		year, week := swim.Date.ISOWeek()
+		currentYear, currentWeek := time.Now().ISOWeek()
+		if week == currentWeek && year == currentYear {
 			weeklyDistance += swim.DistanceM
 			weeklyCount++
+		}
+
+		month := swim.Date.Month()
+		currentMonth := time.Now().Month()
+		if month == currentMonth && year == currentYear {
+			monthlyDistance += swim.DistanceM
+			monthlyCount++
 		}
 	}
 
