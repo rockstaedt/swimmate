@@ -1,8 +1,6 @@
 package main
 
 import (
-	"errors"
-	"github.com/rockstaedt/swimmate/internal/models"
 	"net/http"
 	"strconv"
 	"time"
@@ -13,17 +11,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w)
 	}
 
-	swims, err := app.swims.GetAll()
-	if err != nil {
-		if errors.Is(err, models.ErrNoRecord) {
-			app.notFound(w)
-		} else {
-			app.serverError(w, r, err)
-		}
-		return
-	}
-
-	app.render(w, r, http.StatusOK, "home.tmpl", app.newTemplateData(app.swims.Summarize(swims)))
+	app.render(w, r, http.StatusOK, "home.tmpl", app.newTemplateData(app.swims.Summarize()))
 }
 
 func (app *application) createSwim(w http.ResponseWriter, r *http.Request) {

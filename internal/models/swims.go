@@ -26,7 +26,7 @@ type SwimModel interface {
 	Get() (*Swim, error)
 	GetAll() ([]*Swim, error)
 	Insert(date time.Time, distanceM int, assessment int) error
-	Summarize([]*Swim) *Summary
+	Summarize() *Summary
 }
 
 type swimModel struct {
@@ -84,13 +84,15 @@ func (sw *swimModel) GetAll() ([]*Swim, error) {
 	return swims, nil
 }
 
-func (sw *swimModel) Summarize(swims []*Swim) *Summary {
+func (sw *swimModel) Summarize() *Summary {
 	var totalDistance int
 	var totalCount int
 	var monthlyDistance int
 	var monthlyCount int
 	var weeklyDistance int
 	var weeklyCount int
+
+	swims, _ := sw.GetAll()
 
 	for _, swim := range swims {
 		totalDistance += swim.DistanceM
