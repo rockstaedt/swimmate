@@ -85,42 +85,30 @@ func (sw *swimModel) GetAll() ([]*Swim, error) {
 }
 
 func (sw *swimModel) Summarize() *Summary {
-	var totalDistance int
-	var totalCount int
-	var monthlyDistance int
-	var monthlyCount int
-	var weeklyDistance int
-	var weeklyCount int
+	summary := &Summary{}
 
 	swims, _ := sw.GetAll()
 
 	for _, swim := range swims {
-		totalDistance += swim.DistanceM
-		totalCount++
+		summary.TotalDistance += swim.DistanceM
+		summary.TotalCount++
 
 		year, week := swim.Date.ISOWeek()
 		currentYear, currentWeek := time.Now().ISOWeek()
 		if week == currentWeek && year == currentYear {
-			weeklyDistance += swim.DistanceM
-			weeklyCount++
+			summary.WeeklyDistance += swim.DistanceM
+			summary.WeeklyCount++
 		}
 
 		month := swim.Date.Month()
 		currentMonth := time.Now().Month()
 		if month == currentMonth && year == currentYear {
-			monthlyDistance += swim.DistanceM
-			monthlyCount++
+			summary.MonthlyDistance += swim.DistanceM
+			summary.MonthlyCount++
 		}
 	}
 
-	return &Summary{
-		TotalDistance:   totalDistance,
-		TotalCount:      totalCount,
-		MonthlyDistance: monthlyDistance,
-		MonthlyCount:    monthlyCount,
-		WeeklyDistance:  weeklyDistance,
-		WeeklyCount:     weeklyCount,
-	}
+	return summary
 }
 
 func (sw *swimModel) Insert(date time.Time, distanceM int, assessment int) error {
