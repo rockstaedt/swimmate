@@ -13,7 +13,7 @@ type Swim struct {
 	Assessment int
 }
 
-type Summary struct {
+type SwimSummary struct {
 	TotalDistance   int
 	TotalCount      int
 	MonthlyDistance int
@@ -26,7 +26,7 @@ type SwimModel interface {
 	Get() (*Swim, error)
 	GetAll() ([]*Swim, error)
 	Insert(date time.Time, distanceM int, assessment int) error
-	Summarize() *Summary
+	Summarize() *SwimSummary
 }
 
 type swimModel struct {
@@ -84,8 +84,8 @@ func (sw *swimModel) GetAll() ([]*Swim, error) {
 	return swims, nil
 }
 
-func (sw *swimModel) Summarize() *Summary {
-	summary := &Summary{}
+func (sw *swimModel) Summarize() *SwimSummary {
+	summary := &SwimSummary{}
 
 	swims, err := sw.GetAll()
 	if err != nil {
