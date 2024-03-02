@@ -25,6 +25,7 @@ func (app *application) newTemplateData(data interface{}) templateData {
 var functions = template.FuncMap{
 	"numberFormat": numberFormat,
 	"sub":          sub,
+	"add":          add,
 }
 
 func numberFormat(n int) string {
@@ -44,6 +45,10 @@ func numberFormat(n int) string {
 
 func sub(a, b int) int {
 	return a - b
+}
+
+func add(a, b int) int {
+	return a + b
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {
