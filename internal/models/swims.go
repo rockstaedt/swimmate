@@ -20,6 +20,16 @@ type SwimSummary struct {
 	MonthlyCount    int
 	WeeklyDistance  int
 	WeeklyCount     int
+	YearMap         map[int]YearMap
+}
+
+type YearMap struct {
+	SwimFigures
+}
+
+type SwimFigures struct {
+	Count     int
+	DistanceM int
 }
 
 type SwimModel interface {
@@ -86,6 +96,7 @@ func (sw *swimModel) GetAll() ([]*Swim, error) {
 
 func (sw *swimModel) Summarize() *SwimSummary {
 	summary := &SwimSummary{}
+	summary.YearMap = make(map[int]YearMap)
 
 	swims, err := sw.GetAll()
 	if err != nil {
@@ -109,6 +120,15 @@ func (sw *swimModel) Summarize() *SwimSummary {
 			summary.MonthlyDistance += swim.DistanceM
 			summary.MonthlyCount++
 		}
+
+		yearMap, ok := summary.YearMap[year]
+		if !ok {
+			yearMap = YearMap{}
+		}
+
+		yearMap.Count++
+		yearMap.DistanceM += swim.DistanceM
+		summary.YearMap[year] = yearMap
 	}
 
 	return summary
