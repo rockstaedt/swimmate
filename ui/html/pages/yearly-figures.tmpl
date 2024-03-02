@@ -2,9 +2,9 @@
 {{define "main"}}
     <div class="yearly-figures">
         <div class="navigation">
-            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-left" hx-get="/yearly-figures?year={{ sub .Data.Year 1}}"></i>
             <h2>{{ .Data.Year }}</h2>
-            <i class="fas fa-arrow-right"></i>
+            <i class="fas fa-arrow-right" hx-get="/yearly-figures?year={{ add .Data.Year 1}}"></i>
         </div>
         <div>
             {{ $swimFigures := index .Data.Summary.YearMap .Data.Year }}
