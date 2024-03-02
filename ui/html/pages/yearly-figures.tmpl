@@ -1,0 +1,15 @@
+{{define "title"}}Yearly swims{{end}}
+{{define "main"}}
+    <div class="yearly-figures">
+        <div class="navigation">
+            <i class="fas fa-arrow-left"></i>
+            <h2>2023</h2>
+            <i class="fas fa-arrow-right"></i>
+        </div>
+        <div>
+            {{ $swimFigures := index .Data.YearMap 2023 }}
+            <p>Count: {{ $swimFigures.Count }}</p>
+            <p>Distance: {{ $swimFigures.DistanceM | numberFormat }} m</p>
+        </div>
+    </div>
+{{end}}

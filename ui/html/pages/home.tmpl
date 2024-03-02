@@ -2,7 +2,7 @@
 {{define "main"}}
     <div class="dashboard">
         <div class="dashboard-entry">
-            <h3>Total Swims</h3>
+            <h3 hx-get="/yearly-figures" hx-target="body" hx-push-url="true">Total Swims</h3>
             <p>{{ .Data.TotalCount }}</p>
         </div>
         <div class="dashboard-entry">

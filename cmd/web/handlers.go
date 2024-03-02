@@ -14,6 +14,10 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "home.tmpl", app.newTemplateData(app.swims.Summarize()))
 }
 
+func (app *application) yearlyFigures(w http.ResponseWriter, r *http.Request) {
+	app.render(w, r, http.StatusOK, "yearly-figures.tmpl", app.newTemplateData(app.swims.Summarize()))
+}
+
 func (app *application) createSwim(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "swim-create.tmpl", app.newTemplateData(nil))
 }
