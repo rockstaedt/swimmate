@@ -2,7 +2,7 @@
 {{define "main"}}
     <div class="dashboard">
         <div class="dashboard-entry">
-            <h3 hx-get="/yearly-figures" hx-target="body" hx-push-url="true">Total Swims</h3>
+            <h3 hx-get="/yearly-figures">Total Swims</h3>
             <p>{{ .Data.TotalCount }}</p>
         </div>
         <div class="dashboard-entry">
@@ -25,6 +25,6 @@
             <h3>Weekly Distance</h3>
             <p>{{ .Data.WeeklyDistance | numberFormat }} m</p>
         </div>
-       <button hx-get="/swim" hx-target="body" hx-push-url="true">Add a swim</button>
+       <button hx-get="/swim">Add a swim</button>
     </div>
 {{end}}
