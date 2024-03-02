@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/rockstaedt/swimmate/internal/models"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,7 +16,18 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) yearlyFigures(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, http.StatusOK, "yearly-figures.tmpl", app.newTemplateData(app.swims.Summarize()))
+	year := time.Now().Year()
+	if r.URL.Query().Has("year") {
+		year, _ = strconv.Atoi(r.URL.Query().Get("year"))
+	}
+
+	summary := app.swims.Summarize()
+	data := struct {
+		Summary *models.SwimSummary
+		Year    int
+	}{summary, year}
+
+	app.render(w, r, http.StatusOK, "yearly-figures.tmpl", app.newTemplateData(data))
 }
 
 func (app *application) createSwim(w http.ResponseWriter, r *http.Request) {
