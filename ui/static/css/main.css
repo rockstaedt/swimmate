@@ -93,6 +93,7 @@ button {
     background-color: var(--color-blue-accent);
     border-color: var(--color-blue-accent);
     border-radius: var(--border-radius);
+    cursor: pointer;
 }
 
 .dashboard {
