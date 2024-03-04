@@ -104,36 +104,11 @@ func (sw *swimModel) Summarize() *SwimSummary {
 	}
 
 	for _, swim := range swims {
-		summary.TotalDistance += swim.DistanceM
-		summary.TotalCount++
+		summary.pushYearlyFigures(swim)
+		summary.pushWeeklyFigures(swim)
 
-		year, week := swim.Date.ISOWeek()
-		currentYear, currentWeek := time.Now().ISOWeek()
-		if week == currentWeek && year == currentYear {
-			summary.WeeklyDistance += swim.DistanceM
-			summary.WeeklyCount++
-		}
-
-		yearMap, ok := summary.YearMap[year]
-		if !ok {
-			yearMap = YearMap{}
-			yearMap.MonthMap = make(map[time.Month]SwimFigures)
-			if year < time.Now().Year() {
-				for i := 1; i <= 12; i++ {
-					yearMap.MonthMap[time.Month(i)] = SwimFigures{Count: 0, DistanceM: 0}
-				}
-			}
-		}
-
-		yearMap.Count++
-		yearMap.DistanceM += swim.DistanceM
-		summary.YearMap[year] = yearMap
-
-		month := swim.Date.Month()
-		monthMap, ok := yearMap.MonthMap[month]
-		monthMap.Count++
-		monthMap.DistanceM += swim.DistanceM
-		yearMap.MonthMap[month] = monthMap
+		summary.updateYearMap(swim)
+		summary.updateMonthMap(swim)
 	}
 
 	summary.MonthlyDistance = summary.YearMap[time.Now().Year()].MonthMap[time.Now().Month()].DistanceM
@@ -151,4 +126,49 @@ func (sw *swimModel) Insert(date time.Time, distanceM int, assessment int) error
 	}
 
 	return nil
+}
+
+func (s *SwimSummary) pushYearlyFigures(swim *Swim) {
+	s.TotalDistance += swim.DistanceM
+	s.TotalCount++
+}
+
+func (s *SwimSummary) pushWeeklyFigures(swim *Swim) {
+	year, week := swim.Date.ISOWeek()
+	currentYear, currentWeek := time.Now().ISOWeek()
+
+	if week == currentWeek && year == currentYear {
+		s.WeeklyDistance += swim.DistanceM
+		s.WeeklyCount++
+	}
+}
+
+func (s *SwimSummary) updateYearMap(swim *Swim) {
+	year := swim.Date.Year()
+
+	yearMap, ok := s.YearMap[year]
+	if !ok {
+		yearMap = YearMap{}
+		yearMap.MonthMap = make(map[time.Month]SwimFigures)
+		for i := 1; i <= 12; i++ {
+			yearMap.MonthMap[time.Month(i)] = SwimFigures{Count: 0, DistanceM: 0}
+		}
+	}
+
+	yearMap.Count++
+	yearMap.DistanceM += swim.DistanceM
+
+	s.YearMap[year] = yearMap
+}
+
+func (s *SwimSummary) updateMonthMap(swim *Swim) {
+	month := swim.Date.Month()
+	yearMap := s.YearMap[swim.Date.Year()]
+	monthMap, _ := yearMap.MonthMap[month]
+
+	monthMap.Count++
+	monthMap.DistanceM += swim.DistanceM
+
+	yearMap.MonthMap[month] = monthMap
+
 }
