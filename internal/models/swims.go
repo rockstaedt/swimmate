@@ -25,6 +25,7 @@ type SwimSummary struct {
 
 type YearMap struct {
 	SwimFigures
+	MonthMap map[time.Month]SwimFigures
 }
 
 type SwimFigures struct {
@@ -124,11 +125,22 @@ func (sw *swimModel) Summarize() *SwimSummary {
 		yearMap, ok := summary.YearMap[year]
 		if !ok {
 			yearMap = YearMap{}
+			yearMap.MonthMap = make(map[time.Month]SwimFigures)
+			if year < time.Now().Year() {
+				for i := 1; i <= 12; i++ {
+					yearMap.MonthMap[time.Month(i)] = SwimFigures{Count: 0, DistanceM: 0}
+				}
+			}
 		}
 
 		yearMap.Count++
 		yearMap.DistanceM += swim.DistanceM
 		summary.YearMap[year] = yearMap
+
+		monthMap, ok := yearMap.MonthMap[month]
+		monthMap.Count++
+		monthMap.DistanceM += swim.DistanceM
+		yearMap.MonthMap[month] = monthMap
 	}
 
 	return summary

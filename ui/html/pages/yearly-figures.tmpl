@@ -11,5 +11,26 @@
             <p>Count: {{ $swimFigures.Count }}</p>
             <p>Distance: {{ $swimFigures.DistanceM | numberFormat }} m</p>
         </div>
+        <div>
+            <h3>Monthly figures</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Count</th>
+                        <th>Distance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ range $month, $figures := $swimFigures.MonthMap }}
+                        <tr>
+                            <td>{{ $month }}</td>
+                            <td>{{ $figures.Count }}</td>
+                            <td>{{ $figures.DistanceM | numberFormat }} m</td>
+                        </tr>
+                    {{ end }}
+                </tbody>
+            </table>
+        </div>
     </div>
 {{end}}
