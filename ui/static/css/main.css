@@ -172,6 +172,27 @@ button {
             width: 32rem;
         }
     }
+
+    .month-table {
+        grid-column: span 12;
+        border: solid 0.2rem white;
+        border-radius: var(--border-radius);
+        overflow: auto;
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+
+            th, td {
+                padding: 1rem;
+                border-bottom: solid 0.2rem white;
+            }
+
+            th {
+                text-align: left;
+            }
+        }
+    }
 }
 
 .barlow-condensed-thin {
