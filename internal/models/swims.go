@@ -96,8 +96,7 @@ func (sw *swimModel) GetAll() ([]*Swim, error) {
 }
 
 func (sw *swimModel) Summarize() *SwimSummary {
-	summary := &SwimSummary{}
-	summary.YearMap = make(map[int]YearMap)
+	summary := &SwimSummary{YearMap: make(map[int]YearMap)}
 
 	swims, err := sw.GetAll()
 	if err != nil {
