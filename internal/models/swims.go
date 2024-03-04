@@ -115,13 +115,6 @@ func (sw *swimModel) Summarize() *SwimSummary {
 			summary.WeeklyCount++
 		}
 
-		month := swim.Date.Month()
-		currentMonth := time.Now().Month()
-		if month == currentMonth && year == currentYear {
-			summary.MonthlyDistance += swim.DistanceM
-			summary.MonthlyCount++
-		}
-
 		yearMap, ok := summary.YearMap[year]
 		if !ok {
 			yearMap = YearMap{}
@@ -137,11 +130,15 @@ func (sw *swimModel) Summarize() *SwimSummary {
 		yearMap.DistanceM += swim.DistanceM
 		summary.YearMap[year] = yearMap
 
+		month := swim.Date.Month()
 		monthMap, ok := yearMap.MonthMap[month]
 		monthMap.Count++
 		monthMap.DistanceM += swim.DistanceM
 		yearMap.MonthMap[month] = monthMap
 	}
+
+	summary.MonthlyDistance = summary.YearMap[time.Now().Year()].MonthMap[time.Now().Month()].DistanceM
+	summary.MonthlyCount = summary.YearMap[time.Now().Year()].MonthMap[time.Now().Month()].Count
 
 	return summary
 }
