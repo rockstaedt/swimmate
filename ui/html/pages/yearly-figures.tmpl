@@ -6,10 +6,10 @@
             <h2>{{ .Data.Year }}</h2>
             <i class="fas fa-arrow-right" hx-get="/yearly-figures?year={{ add .Data.Year 1}}"></i>
         </div>
-        <div>
+        <div class="figures">
             {{ $swimFigures := index .Data.Summary.YearMap .Data.Year }}
-            <p>Count: {{ $swimFigures.Count }}</p>
-            <p>Distance: {{ $swimFigures.DistanceM | numberFormat }} m</p>
+            <p class="figure">{{ $swimFigures.Count }} swims</p>
+            <p>{{ $swimFigures.DistanceM | numberFormat }} m</p>
         </div>
         <div class="month-table">
             <table>
