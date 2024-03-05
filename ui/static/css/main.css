@@ -71,7 +71,7 @@ main {
         align-self: center;
     }
 
-    p, label {
+    p, label, td, th {
         font-size: 2rem;
     }
 }
