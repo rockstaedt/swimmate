@@ -164,7 +164,7 @@ func (s *SwimSummary) updateYearMap(swim *Swim) {
 func (s *SwimSummary) updateMonthMap(swim *Swim) {
 	month := swim.Date.Month()
 	yearMap := s.YearMap[swim.Date.Year()]
-	monthMap, _ := yearMap.MonthMap[month]
+	monthMap := yearMap.MonthMap[month]
 
 	monthMap.Count++
 	monthMap.DistanceM += swim.DistanceM
