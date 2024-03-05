@@ -150,6 +150,8 @@ button {
 }
 
 .yearly-figures {
+    margin: 2rem 0;
+
     > div {
         grid-column: span 12;
     }
