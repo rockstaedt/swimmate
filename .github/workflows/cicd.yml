@@ -10,6 +10,9 @@ on:
       - 'go.mod'
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Test
@@ -23,10 +26,21 @@ jobs:
         run: go test ./...
       - name: Run static analysis
         run: go vet ./...
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v3
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache: false
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v4
         with:
           version: v1.54
+
 
   build:
     name: Build
