@@ -28,17 +28,30 @@
         <script src="https://kit.fontawesome.com/5a7b8770d3.js" crossorigin="anonymous"></script>
         <script src="/static/js/htmx.min.js" type="text/javascript" defer></script>
     </head>
-    <body>
+    <body hx-boost="true" hx-target="body" hx-push-url="true">
     <header>
         <a href="/"><h1>SwimMate</h1></a>
-        <i class="fas fa-tint"></i>
+        <i class="fas fa-tint nav-icon"></i>
+        <div class="nav-items">
+            <a href="/">Home</a>
+            <a href="/yearly-figures">Yearly Statistics</a>
+        </div>
     </header>
-    <main hx-boost="true" hx-target="body" hx-push-url="true">
+    <main>
         {{template "main" .}}
     </main>
     <footer>
         Powered by <a href='https://github.com/rockstaedt/'>rockstaedt</a> | {{.Version}}
     </footer>
     </body>
+    <script>
+        document.querySelector('.nav-icon').addEventListener('click', function () {
+            this.classList.toggle('spin');
+            let dropdown = document.querySelector('.nav-items');
+            dropdown.style.display = dropdown.style.display === 'none' || dropdown.style.display === ''
+                ? 'block'
+                : 'none';
+        });
+    </script>
     </html>
 {{end}}
