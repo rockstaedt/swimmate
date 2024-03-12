@@ -30,6 +30,10 @@ func (app *application) yearlyFigures(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "yearly-figures.tmpl", app.newTemplateData(data))
 }
 
+func (app *application) about(w http.ResponseWriter, r *http.Request) {
+	app.render(w, r, http.StatusOK, "about.tmpl", app.newTemplateData(nil))
+}
+
 func (app *application) createSwim(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "swim-create.tmpl", app.newTemplateData(nil))
 }

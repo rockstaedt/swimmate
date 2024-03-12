@@ -35,14 +35,12 @@
         <div class="nav-items">
             <a href="/"><i class="fas fa-chevron-right"></i>Home</a>
             <a href="/yearly-figures"><i class="fas fa-chevron-right"></i>Yearly Statistics</a>
+            <a href="/about"><i class="fas fa-chevron-right"></i>About</a>
         </div>
     </header>
     <main>
         {{template "main" .}}
     </main>
-    <footer>
-        Powered by <a href='https://github.com/rockstaedt/'>rockstaedt</a> | {{.Version}}
-    </footer>
     </body>
     <script>
         document.querySelector('.nav-icon').addEventListener('click', function () {
