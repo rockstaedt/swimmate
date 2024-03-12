@@ -58,7 +58,7 @@ header {
 
     .nav-items {
         display: none;
-        top: 7rem;
+        top: calc(7rem + env(safe-area-inset-top));
         right: 1rem;
         position: absolute;
         background-color: var(--color-background-200);
