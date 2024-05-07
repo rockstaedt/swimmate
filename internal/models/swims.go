@@ -49,7 +49,7 @@ func NewSwimModel(db *sql.DB) SwimModel {
 }
 
 func (sw *swimModel) Get() (*Swim, error) {
-	stmt := `SELECT date, distance_m, assessment FROM tracks_track ORDER BY date ASC LIMIT 1;`
+	stmt := `SELECT date, distance_m, assessment FROM swims ORDER BY date ASC LIMIT 1;`
 
 	row := sw.DB.QueryRow(stmt)
 
@@ -68,7 +68,7 @@ func (sw *swimModel) Get() (*Swim, error) {
 }
 
 func (sw *swimModel) GetAll() ([]*Swim, error) {
-	stmt := `SELECT date, distance_m, assessment FROM tracks_track WHERE user_id = $1 ORDER BY date ASC;`
+	stmt := `SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY date ASC;`
 
 	rows, err := sw.DB.Query(stmt, 1)
 	if err != nil {
@@ -118,7 +118,7 @@ func (sw *swimModel) Summarize() *SwimSummary {
 }
 
 func (sw *swimModel) Insert(date time.Time, distanceM int, assessment int) error {
-	stmt := `INSERT INTO tracks_track (date, distance_m, assessment, user_id) VALUES ($1, $2, $3, $4);`
+	stmt := `INSERT INTO swims (date, distance_m, assessment, user_id) VALUES ($1, $2, $3, $4);`
 
 	_, err := sw.DB.Exec(stmt, date, distanceM, assessment, 1)
 	if err != nil {
