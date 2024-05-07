@@ -1,22 +1,24 @@
 {{define "title"}}Create Swim{{end}}
 {{define "main"}}
-    <form class="form" method="POST" action="/swim">
-        <div class="form-group">
-            <label for="date">Date</label>
-            <input type="date" name="date" id="date">
-        </div>
-        <div class="form-group">
-            <label for="distance_m">Distance in meter</label>
-            <input type="number" name="distance_m" id="distance_m">
-        </div>
-        <div class="form-group">
-            <label for="assessment">Assessment</label>
-            <select id="assessment" name="assessment">
-                <option value="2">Good</option>
-                <option value="1" selected>Neutral</option>
-                <option value="0">Bad</option>
-            </select>
-        </div>
-        <button type="submit">Add</button>
-    </form>
+    <div class="create-swim">
+        <form class="form" method="POST" action="/swim">
+            <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" name="date" id="date">
+            </div>
+            <div class="form-group">
+                <label for="distance_m">Distance in meter</label>
+                <input type="number" name="distance_m" id="distance_m">
+            </div>
+            <div class="form-group">
+                <label for="assessment">Assessment</label>
+                <select id="assessment" name="assessment">
+                    <option value="2">Good</option>
+                    <option value="1" selected>Neutral</option>
+                    <option value="0">Bad</option>
+                </select>
+            </div>
+            <button type="submit">Add</button>
+        </form>
+    </div>
 {{end}}

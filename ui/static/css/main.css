@@ -90,7 +90,12 @@ main {
         column-gap: 1rem;
         row-gap: 1rem;
         max-width: 32rem;
+        min-width: 32rem;
         align-self: center;
+    }
+
+    > div:first-child {
+        margin-top: 5rem;
     }
 
     p, label, td, th {
@@ -119,7 +124,6 @@ button {
 }
 
 .dashboard {
-    margin-top: 5rem;
 
     .dashboard-entry {
         grid-column: span 6;
@@ -139,11 +143,16 @@ button {
     }
 }
 
+.create-swim {
+    > :first-child {
+        grid-column: span 12;
+    }
+}
+
 .form {
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
-    margin-top: 5rem;
 
     .form-group {
         height: 8rem;
@@ -175,8 +184,6 @@ button {
 }
 
 .yearly-figures {
-    margin: 2rem 0;
-
     > div {
         grid-column: span 12;
     }
