@@ -68,6 +68,7 @@ func (sw *swimModel) Get() (*Swim, error) {
 }
 
 func (sw *swimModel) GetAll() ([]*Swim, error) {
+	// TODO: Change to authenticated user
 	stmt := `SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY date ASC;`
 
 	rows, err := sw.DB.Query(stmt, 1)
