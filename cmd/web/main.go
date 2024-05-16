@@ -20,6 +20,7 @@ var version string
 type application struct {
 	logger         *slog.Logger
 	swims          models.SwimModel
+	users          models.UserModel
 	templateCache  map[string]*template.Template
 	version        string
 	sessionManager *scs.SessionManager
@@ -48,6 +49,7 @@ func main() {
 		templateCache: templateCache,
 		version:       version,
 		swims:         models.NewSwimModel(db),
+		users:         models.NewUserModel(db),
 	}
 
 	sessionManager := scs.New()

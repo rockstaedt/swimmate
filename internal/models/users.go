@@ -23,3 +23,11 @@ type UserModel interface {
 type userModel struct {
 	DB *sql.DB
 }
+
+func NewUserModel(db *sql.DB) UserModel {
+	return &userModel{DB: db}
+}
+
+func (u userModel) Authenticate(username, password string) (int, error) {
+	return 0, nil
+}
