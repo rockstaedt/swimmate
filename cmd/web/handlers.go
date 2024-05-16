@@ -13,7 +13,9 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w)
 	}
 
-	app.render(w, r, http.StatusOK, "home.tmpl", app.newTemplateData(r, app.swims.Summarize()))
+	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+
+	app.render(w, r, http.StatusOK, "home.tmpl", app.newTemplateData(r, app.swims.Summarize(userId)))
 }
 
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
@@ -72,7 +74,7 @@ func (app *application) yearlyFigures(w http.ResponseWriter, r *http.Request) {
 		year, _ = strconv.Atoi(r.URL.Query().Get("year"))
 	}
 
-	summary := app.swims.Summarize()
+	summary := app.swims.Summarize(app.sessionManager.GetInt(r.Context(), "authenticatedUserID"))
 	data := struct {
 		Summary *models.SwimSummary
 		Year    int
@@ -118,7 +120,8 @@ func (app *application) storeSwim(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.swims.Insert(date, distanceM, assessment)
+	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+	err = app.swims.Insert(date, distanceM, assessment, userId)
 	if err != nil {
 		app.serverError(w, r, err)
 		return

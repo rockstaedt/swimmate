@@ -35,9 +35,9 @@ type SwimFigures struct {
 
 type SwimModel interface {
 	Get() (*Swim, error)
-	GetAll() ([]*Swim, error)
-	Insert(date time.Time, distanceM int, assessment int) error
-	Summarize() *SwimSummary
+	GetAll(userId int) ([]*Swim, error)
+	Insert(date time.Time, distanceM int, assessment int, userId int) error
+	Summarize(userId int) *SwimSummary
 }
 
 type swimModel struct {
@@ -67,11 +67,10 @@ func (sw *swimModel) Get() (*Swim, error) {
 	return &s, nil
 }
 
-func (sw *swimModel) GetAll() ([]*Swim, error) {
-	// TODO: Change to authenticated user
+func (sw *swimModel) GetAll(userId int) ([]*Swim, error) {
 	stmt := `SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY date ASC;`
 
-	rows, err := sw.DB.Query(stmt, 1)
+	rows, err := sw.DB.Query(stmt, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -96,10 +95,10 @@ func (sw *swimModel) GetAll() ([]*Swim, error) {
 	return swims, nil
 }
 
-func (sw *swimModel) Summarize() *SwimSummary {
+func (sw *swimModel) Summarize(userId int) *SwimSummary {
 	summary := &SwimSummary{YearMap: make(map[int]YearMap)}
 
-	swims, err := sw.GetAll()
+	swims, err := sw.GetAll(userId)
 	if err != nil {
 		return summary
 	}
@@ -118,10 +117,10 @@ func (sw *swimModel) Summarize() *SwimSummary {
 	return summary
 }
 
-func (sw *swimModel) Insert(date time.Time, distanceM int, assessment int) error {
+func (sw *swimModel) Insert(date time.Time, distanceM int, assessment int, userId int) error {
 	stmt := `INSERT INTO swims (date, distance_m, assessment, user_id) VALUES ($1, $2, $3, $4);`
 
-	_, err := sw.DB.Exec(stmt, date, distanceM, assessment, 1)
+	_, err := sw.DB.Exec(stmt, date, distanceM, assessment, userId)
 	if err != nil {
 		return err
 	}
