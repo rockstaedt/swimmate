@@ -17,11 +17,13 @@ func (app *application) routes() http.Handler {
 	fileServer := http.FileServer(http.FS(ui.Files))
 	router.Handler(http.MethodGet, "/static/*filepath", fileServer)
 
-	router.HandlerFunc(http.MethodGet, "/", app.home)
-	router.HandlerFunc(http.MethodGet, "/yearly-figures", app.yearlyFigures)
-	router.HandlerFunc(http.MethodGet, "/about", app.about)
-	router.HandlerFunc(http.MethodGet, "/swim", app.createSwim)
-	router.HandlerFunc(http.MethodPost, "/swim", app.storeSwim)
+	dynamic := alice.New(app.sessionManager.LoadAndSave)
+
+	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.home))
+	router.Handler(http.MethodGet, "/yearly-figures", dynamic.ThenFunc(app.yearlyFigures))
+	router.Handler(http.MethodGet, "/about", dynamic.ThenFunc(app.about))
+	router.Handler(http.MethodGet, "/swim", dynamic.ThenFunc(app.createSwim))
+	router.Handler(http.MethodPost, "/swim", dynamic.ThenFunc(app.storeSwim))
 
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 
