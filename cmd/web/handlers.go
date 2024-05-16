@@ -21,6 +21,13 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) authenticate(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		app.logger.Error(err.Error())
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
 	id, err := app.users.Authenticate(r.PostForm.Get("username"), r.PostForm.Get("password"))
 	if err != nil {
 		if errors.Is(err, models.ErrInvalidCredentials) {
