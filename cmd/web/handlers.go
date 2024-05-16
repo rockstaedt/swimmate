@@ -33,7 +33,7 @@ func (app *application) authenticate(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, models.ErrInvalidCredentials) {
 			app.sessionManager.Put(r.Context(), "flashText", "Invalid credentials")
 			app.sessionManager.Put(r.Context(), "flashType", "flash-error")
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			app.render(w, r, http.StatusOK, "login.tmpl", app.newTemplateData(r, nil))
 			return
 		}
 
