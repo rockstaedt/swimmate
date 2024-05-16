@@ -3,6 +3,7 @@
     --color-background-200: #343C49;
     --color-secondary: #a0a0a0;
     --color-blue-accent: deepskyblue;
+    --color-success: #43be48;
     --color-error: red;
 
     --border-radius: 1rem
@@ -94,12 +95,37 @@ main {
         align-self: center;
     }
 
-    > div:first-child {
-        margin-top: 5rem;
+    > div:first-child:not(.flash-box) {
+        margin-top: 4rem;
     }
 
-    p, label, td, th {
+    p, label, td, th, .flash {
         font-size: 2rem;
+    }
+
+    .flash-box {
+        .flash {
+            display: flex;
+            flex-direction: row;
+            grid-column: span 12;
+            opacity: 1;
+            margin: 2rem 0;
+            overflow: hidden;
+            background-color: var(--color-success);
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            transition: opacity 3s linear;
+
+            > span {
+                text-align: center;
+                max-height: 100px;
+                width: 100%;
+                overflow: hidden;
+                display: inline-block;
+                transition: max-height 2s linear;
+            }
+        }
     }
 }
 
@@ -282,4 +308,17 @@ button {
     font-weight: 100;
     font-style: normal;
 }
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        height: auto;
+    }
+    to {
+        opacity: 0;
+        height: 0;
+        padding: 0;
+    }
+}
+
 

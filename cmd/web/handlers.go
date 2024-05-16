@@ -12,7 +12,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w)
 	}
 
-	app.render(w, r, http.StatusOK, "home.tmpl", app.newTemplateData(app.swims.Summarize()))
+	app.render(w, r, http.StatusOK, "home.tmpl", app.newTemplateData(r, app.swims.Summarize()))
 }
 
 func (app *application) yearlyFigures(w http.ResponseWriter, r *http.Request) {
@@ -27,15 +27,15 @@ func (app *application) yearlyFigures(w http.ResponseWriter, r *http.Request) {
 		Year    int
 	}{summary, year}
 
-	app.render(w, r, http.StatusOK, "yearly-figures.tmpl", app.newTemplateData(data))
+	app.render(w, r, http.StatusOK, "yearly-figures.tmpl", app.newTemplateData(r, data))
 }
 
 func (app *application) about(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, http.StatusOK, "about.tmpl", app.newTemplateData(nil))
+	app.render(w, r, http.StatusOK, "about.tmpl", app.newTemplateData(r, nil))
 }
 
 func (app *application) createSwim(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, http.StatusOK, "swim-create.tmpl", app.newTemplateData(nil))
+	app.render(w, r, http.StatusOK, "swim-create.tmpl", app.newTemplateData(r, nil))
 }
 
 func (app *application) storeSwim(w http.ResponseWriter, r *http.Request) {
@@ -72,6 +72,8 @@ func (app *application) storeSwim(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, r, err)
 		return
 	}
+
+	app.sessionManager.Put(r.Context(), "flash", "Successfully created!")
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

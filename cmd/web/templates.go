@@ -4,6 +4,7 @@ import (
 	"github.com/rockstaedt/swimmate/ui"
 	"html/template"
 	"io/fs"
+	"net/http"
 	"path/filepath"
 	"strconv"
 )
@@ -11,15 +12,18 @@ import (
 type templateData struct {
 	Version string
 	Data    interface{}
+	Flash   string
 }
 
-func (app *application) newTemplateData(data interface{}) templateData {
+func (app *application) newTemplateData(r *http.Request, data interface{}) templateData {
 	versionTxt := "development"
 	if len(app.version) != 0 {
 		versionTxt = app.version
 	}
 
-	return templateData{Version: versionTxt, Data: data}
+	flash := app.sessionManager.PopString(r.Context(), "flash")
+
+	return templateData{Version: versionTxt, Data: data, Flash: flash}
 }
 
 var functions = template.FuncMap{
