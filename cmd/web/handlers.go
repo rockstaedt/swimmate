@@ -17,7 +17,24 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "login.tmpl", app.newTemplateData(r, nil))
+}
 
+func (app *application) authenticate(w http.ResponseWriter, r *http.Request) {
+	id, err := app.users.Authenticate(r.PostForm.Get("username"), r.PostForm.Get("password"))
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	err = app.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	app.sessionManager.Put(r.Context(), "authenticatedUserID", id)
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (app *application) yearlyFigures(w http.ResponseWriter, r *http.Request) {
