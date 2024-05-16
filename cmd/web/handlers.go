@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"github.com/rockstaedt/swimmate/internal/models"
 	"net/http"
 	"strconv"
@@ -22,6 +23,12 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 func (app *application) authenticate(w http.ResponseWriter, r *http.Request) {
 	id, err := app.users.Authenticate(r.PostForm.Get("username"), r.PostForm.Get("password"))
 	if err != nil {
+		if errors.Is(err, models.ErrInvalidCredentials) {
+			app.sessionManager.Put(r.Context(), "flash", "Invalid credentials")
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+
 		app.serverError(w, r, err)
 		return
 	}
