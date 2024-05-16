@@ -169,7 +169,7 @@ button {
     }
 }
 
-.create-swim {
+.create-swim, .login {
     > :first-child {
         grid-column: span 12;
     }

@@ -15,6 +15,11 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "home.tmpl", app.newTemplateData(r, app.swims.Summarize()))
 }
 
+func (app *application) login(w http.ResponseWriter, r *http.Request) {
+	app.render(w, r, http.StatusOK, "login.tmpl", app.newTemplateData(r, nil))
+
+}
+
 func (app *application) yearlyFigures(w http.ResponseWriter, r *http.Request) {
 	year := time.Now().Year()
 	if r.URL.Query().Has("year") {
