@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"database/sql"
+	"github.com/alexedwards/scs/postgresstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/rockstaedt/swimmate/internal/models"
 	"html/template"
 	"log/slog"
@@ -16,10 +18,11 @@ import (
 var version string
 
 type application struct {
-	logger        *slog.Logger
-	swims         models.SwimModel
-	templateCache map[string]*template.Template
-	version       string
+	logger         *slog.Logger
+	swims          models.SwimModel
+	templateCache  map[string]*template.Template
+	version        string
+	sessionManager *scs.SessionManager
 }
 
 func main() {
@@ -46,6 +49,12 @@ func main() {
 		version:       version,
 		swims:         models.NewSwimModel(db),
 	}
+
+	sessionManager := scs.New()
+	sessionManager.Store = postgresstore.New(db)
+	sessionManager.Lifetime = 12 * time.Hour
+
+	app.sessionManager = sessionManager
 
 	port := ":8998"
 	srv := &http.Server{
