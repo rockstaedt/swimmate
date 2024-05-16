@@ -10,9 +10,10 @@ import (
 )
 
 type templateData struct {
-	Version string
-	Data    interface{}
-	Flash   *Flash
+	Version         string
+	Data            interface{}
+	Flash           *Flash
+	IsAuthenticated bool
 }
 
 type Flash struct {
@@ -31,7 +32,7 @@ func (app *application) newTemplateData(r *http.Request, data interface{}) templ
 		app.sessionManager.PopString(r.Context(), "flashType"),
 	)
 
-	return templateData{Version: versionTxt, Data: data, Flash: flash}
+	return templateData{Version: versionTxt, Data: data, Flash: flash, IsAuthenticated: app.isAuthenticated(r)}
 }
 
 func newFlash(text, flashType string) *Flash {
