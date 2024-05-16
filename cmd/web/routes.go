@@ -19,14 +19,17 @@ func (app *application) routes() http.Handler {
 
 	dynamic := alice.New(app.sessionManager.LoadAndSave)
 
-	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.home))
 	router.Handler(http.MethodGet, "/login", dynamic.ThenFunc(app.login))
 	router.Handler(http.MethodPost, "/authenticate", dynamic.ThenFunc(app.authenticate))
 	router.Handler(http.MethodPost, "/logout", dynamic.ThenFunc(app.logout))
-	router.Handler(http.MethodGet, "/yearly-figures", dynamic.ThenFunc(app.yearlyFigures))
 	router.Handler(http.MethodGet, "/about", dynamic.ThenFunc(app.about))
-	router.Handler(http.MethodGet, "/swim", dynamic.ThenFunc(app.createSwim))
-	router.Handler(http.MethodPost, "/swim", dynamic.ThenFunc(app.storeSwim))
+
+	protected := dynamic.Append(app.requireAuthentication)
+
+	router.Handler(http.MethodGet, "/", protected.ThenFunc(app.home))
+	router.Handler(http.MethodGet, "/yearly-figures", protected.ThenFunc(app.yearlyFigures))
+	router.Handler(http.MethodGet, "/swim", protected.ThenFunc(app.createSwim))
+	router.Handler(http.MethodPost, "/swim", protected.ThenFunc(app.storeSwim))
 
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 
