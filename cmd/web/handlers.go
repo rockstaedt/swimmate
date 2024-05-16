@@ -53,6 +53,19 @@ func (app *application) authenticate(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+func (app *application) logout(w http.ResponseWriter, r *http.Request) {
+	err := app.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	app.sessionManager.Remove(r.Context(), "authenticatedUserID")
+	app.sessionManager.Put(r.Context(), "flashText", "Successfully logged out.")
+
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
 func (app *application) yearlyFigures(w http.ResponseWriter, r *http.Request) {
 	year := time.Now().Year()
 	if r.URL.Query().Has("year") {
