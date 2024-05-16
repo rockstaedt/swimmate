@@ -12,7 +12,12 @@ import (
 type templateData struct {
 	Version string
 	Data    interface{}
-	Flash   string
+	Flash   *Flash
+}
+
+type Flash struct {
+	Text string
+	Type string
 }
 
 func (app *application) newTemplateData(r *http.Request, data interface{}) templateData {
@@ -21,9 +26,28 @@ func (app *application) newTemplateData(r *http.Request, data interface{}) templ
 		versionTxt = app.version
 	}
 
-	flash := app.sessionManager.PopString(r.Context(), "flash")
+	flash := newFlash(
+		app.sessionManager.PopString(r.Context(), "flashText"),
+		app.sessionManager.PopString(r.Context(), "flashType"),
+	)
 
 	return templateData{Version: versionTxt, Data: data, Flash: flash}
+}
+
+func newFlash(text, flashType string) *Flash {
+	flash := &Flash{
+		Text: text,
+		Type: flashType,
+	}
+
+	if flash.Type == "" {
+		flash.Type = "success"
+	}
+	if flash.Text == "" {
+		flash = nil
+	}
+
+	return flash
 }
 
 var functions = template.FuncMap{

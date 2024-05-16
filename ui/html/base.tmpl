@@ -42,7 +42,7 @@
     <main>
         {{with .Flash}}
             <div class="flash-box">
-                <div class='flash'><span>{{.}}</span></div>
+                <div class='flash {{.Type}}'><span>{{.Text}}</span></div>
             </div>
         {{end}}
         {{template "main" .}}

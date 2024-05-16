@@ -24,7 +24,7 @@ func (app *application) authenticate(w http.ResponseWriter, r *http.Request) {
 	id, err := app.users.Authenticate(r.PostForm.Get("username"), r.PostForm.Get("password"))
 	if err != nil {
 		if errors.Is(err, models.ErrInvalidCredentials) {
-			app.sessionManager.Put(r.Context(), "flash", "Invalid credentials")
+			app.sessionManager.Put(r.Context(), "flashText", "Invalid credentials")
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
@@ -102,7 +102,7 @@ func (app *application) storeSwim(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.sessionManager.Put(r.Context(), "flash", "Successfully created!")
+	app.sessionManager.Put(r.Context(), "flashText", "Successfully created!")
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
