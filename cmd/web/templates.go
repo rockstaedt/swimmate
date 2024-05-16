@@ -41,7 +41,7 @@ func newFlash(text, flashType string) *Flash {
 	}
 
 	if flash.Type == "" {
-		flash.Type = "success"
+		flash.Type = "flash-success"
 	}
 	if flash.Text == "" {
 		flash = nil

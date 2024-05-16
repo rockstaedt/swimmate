@@ -103,28 +103,33 @@ main {
         font-size: 2rem;
     }
 
-    .flash-box {
-        .flash {
-            display: flex;
-            flex-direction: row;
-            grid-column: span 12;
-            opacity: 1;
-            margin: 2rem 0;
-            overflow: hidden;
-            background-color: var(--color-success);
-            color: white;
-            padding: 1.5rem;
-            border-radius: var(--border-radius);
-            transition: opacity 3s linear;
+    .flash {
+        display: flex;
+        flex-direction: row;
+        grid-column: span 12;
+        opacity: 1;
+        margin: 2rem 0;
+        overflow: hidden;
+        color: white;
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        transition: opacity 3s linear;
 
-            > span {
-                text-align: center;
-                max-height: 100px;
-                width: 100%;
-                overflow: hidden;
-                display: inline-block;
-                transition: max-height 2s linear;
-            }
+        > span {
+            text-align: center;
+            max-height: 100px;
+            width: 100%;
+            overflow: hidden;
+            display: inline-block;
+            transition: max-height 2s linear;
+        }
+
+        &.flash-success {
+            background-color: var(--color-success);
+        }
+
+        &.flash-error {
+            background-color: var(--color-error);
         }
     }
 }
