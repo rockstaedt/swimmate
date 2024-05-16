@@ -31,7 +31,7 @@ func (app *application) authenticate(w http.ResponseWriter, r *http.Request) {
 	id, err := app.users.Authenticate(r.PostForm.Get("username"), r.PostForm.Get("password"))
 	if err != nil {
 		if errors.Is(err, models.ErrInvalidCredentials) {
-			app.sessionManager.Put(r.Context(), "flashText", "Invalid credentials")
+			app.sessionManager.Put(r.Context(), "flashText", "Invalid credentials.")
 			app.sessionManager.Put(r.Context(), "flashType", "flash-error")
 			app.render(w, r, http.StatusOK, "login.tmpl", app.newTemplateData(r, nil))
 			return
@@ -48,6 +48,7 @@ func (app *application) authenticate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.sessionManager.Put(r.Context(), "authenticatedUserID", id)
+	app.sessionManager.Put(r.Context(), "flashText", "Successfully logged in.")
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
