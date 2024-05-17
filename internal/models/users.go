@@ -30,13 +30,13 @@ func NewUserModel(db *sql.DB) UserModel {
 	return &userModel{DB: db}
 }
 
-func (u userModel) Authenticate(username, password string) (int, error) {
+func (um userModel) Authenticate(username, password string) (int, error) {
 	var id int
 	var hashedPassword []byte
 
 	stmt := `SELECT id, password FROM users WHERE username = $1`
 
-	err := u.DB.QueryRow(stmt, username).Scan(&id, &hashedPassword)
+	err := um.DB.QueryRow(stmt, username).Scan(&id, &hashedPassword)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return 0, ErrInvalidCredentials
@@ -50,6 +50,13 @@ func (u userModel) Authenticate(username, password string) (int, error) {
 			return 0, ErrInvalidCredentials
 		}
 
+		return 0, err
+	}
+
+	stmt = `UPDATE users SET last_login = $1 WHERE id = $2`
+
+	_, err = um.DB.Exec(stmt, time.Now(), id)
+	if err != nil {
 		return 0, err
 	}
 
