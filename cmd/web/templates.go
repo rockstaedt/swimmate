@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"time"
 )
 
 type templateData struct {
@@ -14,6 +15,7 @@ type templateData struct {
 	Data            interface{}
 	Flash           *Flash
 	IsAuthenticated bool
+	CurrentDate     string
 }
 
 type Flash struct {
@@ -32,7 +34,13 @@ func (app *application) newTemplateData(r *http.Request, data interface{}) templ
 		app.sessionManager.PopString(r.Context(), "flashType"),
 	)
 
-	return templateData{Version: versionTxt, Data: data, Flash: flash, IsAuthenticated: app.isAuthenticated(r)}
+	return templateData{
+		Version:         versionTxt,
+		Data:            data,
+		Flash:           flash,
+		IsAuthenticated: app.isAuthenticated(r),
+		CurrentDate:     time.Now().Format("2006-01-02"),
+	}
 }
 
 func newFlash(text, flashType string) *Flash {
