@@ -144,8 +144,8 @@ func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// For direct browser requests, show full page with all swims up to offset + 20
-	totalSwims := offset + itemsPerPage
-	swims, err := app.swims.GetPaginated(userId, totalSwims, 0)
+	limit := offset + itemsPerPage
+	swims, err := app.swims.GetPaginated(userId, limit, 0)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
