@@ -91,6 +91,83 @@ func (app *application) createSwim(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "swim-create.tmpl", app.newTemplateData(r, nil))
 }
 
+func (app *application) swimsList(w http.ResponseWriter, r *http.Request) {
+	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+	
+	swims, err := app.swims.GetPaginated(userId, 20, 0)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	data := struct {
+		Swims  []*models.Swim
+		Offset int
+		Limit  int
+	}{swims, 0, 20}
+
+	app.render(w, r, http.StatusOK, "swims.tmpl", app.newTemplateData(r, data))
+}
+
+func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
+	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+	
+	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
+	if err != nil {
+		offset = 0
+	}
+
+	// Check if this is an HTMX request
+	if r.Header.Get("HX-Request") == "true" {
+		// Return partial HTML for HTMX
+		swims, err := app.swims.GetPaginated(userId, 20, offset)
+		if err != nil {
+			app.serverError(w, r, err)
+			return
+		}
+
+		for _, swim := range swims {
+			w.Write([]byte(`<tr>`))
+			w.Write([]byte(`<td>` + swim.Date.Format("2006-01-02") + `</td>`))
+			w.Write([]byte(`<td>` + numberFormat(swim.DistanceM) + ` m</td>`))
+			w.Write([]byte(`<td>`))
+			
+			for i := 0; i < swim.Assessment+1; i++ {
+				w.Write([]byte(`<i class="fas fa-star"></i>`))
+			}
+			for i := swim.Assessment+1; i < 3; i++ {
+				w.Write([]byte(`<i class="far fa-star"></i>`))
+			}
+			
+			w.Write([]byte(`</td>`))
+			w.Write([]byte(`</tr>`))
+		}
+
+		// Add the new button row or end
+		if len(swims) == 20 {
+			newOffset := offset + 20
+			w.Write([]byte(`<tr id="load-more-row"><td colspan="3" style="text-align: center; padding: 2rem;"><button hx-get="/swims/more?offset=` + strconv.Itoa(newOffset) + `" hx-target="#load-more-row" hx-swap="outerHTML">Load More</button></td></tr>`))
+		}
+		return
+	}
+
+	// For direct browser requests, show full page with all swims up to offset + 20
+	totalSwims := offset + 20
+	swims, err := app.swims.GetPaginated(userId, totalSwims, 0)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	data := struct {
+		Swims  []*models.Swim
+		Offset int
+		Limit  int
+	}{swims, offset, 20}
+
+	app.render(w, r, http.StatusOK, "swims.tmpl", app.newTemplateData(r, data))
+}
+
 func (app *application) storeSwim(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
