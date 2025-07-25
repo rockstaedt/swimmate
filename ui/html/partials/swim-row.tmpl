@@ -1,0 +1,14 @@
+{{define "swim-row"}}
+<tr>
+    <td>{{.Date.Format "2006-01-02"}}</td>
+    <td>{{.DistanceM | numberFormat}} m</td>
+    <td>
+        {{range $i := seq (add .Assessment 1)}}
+            <i class="fas fa-star"></i>
+        {{end}}
+        {{range $i := seq (sub 2 .Assessment)}}
+            <i class="far fa-star"></i>
+        {{end}}
+    </td>
+</tr>
+{{end}}
