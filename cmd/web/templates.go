@@ -63,6 +63,9 @@ var functions = template.FuncMap{
 	"numberFormat": numberFormat,
 	"sub":          sub,
 	"add":          add,
+	"seq":          seq,
+	"min":          min,
+	"emptyStars":   emptyStars,
 }
 
 func numberFormat(n int) string {
@@ -88,6 +91,26 @@ func add(a, b int) int {
 	return a + b
 }
 
+func seq(n int) []int {
+	result := make([]int, n)
+	for i := 0; i < n; i++ {
+		result[i] = i + 1
+	}
+	return result
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func emptyStars(assessment int) int {
+	maxStars := 2
+	return maxStars - min(assessment, maxStars)
+}
+
 func newTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
 
@@ -99,6 +122,13 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	for _, page := range pages {
 		name := filepath.Base(page)
 		patterns := []string{"html/base.tmpl", page}
+		
+		// Add partials if they exist
+		partials, err := fs.Glob(ui.Files, "html/partials/*.tmpl")
+		if err != nil {
+			return nil, err
+		}
+		patterns = append(patterns, partials...)
 
 		ts, errPars := template.New(name).Funcs(functions).ParseFS(ui.Files, patterns...)
 		if errPars != nil {

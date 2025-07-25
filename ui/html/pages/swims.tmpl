@@ -1,0 +1,33 @@
+{{define "title"}}Swims{{end}}
+
+{{define "main"}}
+    <div class="swims-list">
+        <div class="month-table">
+            <table>
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Distance</th>
+                    <th>Assessment</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{range .Data.Swims}}
+                    {{template "swim-row" .}}
+                {{end}}
+                {{if eq (len .Data.Swims) .Data.Limit}}
+                    <tr id="load-more-row">
+                        <td colspan="3" class="load-more-cell">
+                            <button hx-get="/swims/more?offset={{add .Data.Offset .Data.Limit}}"
+                                    hx-target="#load-more-row"
+                                    hx-swap="outerHTML">
+                                Load More
+                            </button>
+                        </td>
+                    </tr>
+                {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{{end}}

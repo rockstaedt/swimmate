@@ -214,11 +214,58 @@ button {
     }
 }
 
-.yearly-figures {
+.yearly-figures, .swims-list {
     > div {
         grid-column: span 12;
     }
 
+    h2 {
+        margin: 0 0 2rem 0;
+        text-align: center;
+    }
+
+    .month-table {
+        grid-column: span 12;
+        border: solid 0.2rem white;
+        border-radius: var(--border-radius);
+        overflow: auto;
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+
+            th, td {
+                padding: 1rem;
+                border-bottom: solid 0.2rem white;
+            }
+
+            th {
+                text-align: left;
+            }
+
+            .fas.fa-star, .far.fa-star {
+                color: var(--color-blue-accent);
+            }
+        }
+    }
+
+    .load-more-container {
+        text-align: center;
+        margin-top: 2rem;
+
+        button {
+            grid-column: span 12;
+            font-size: 2rem;
+        }
+    }
+
+    .load-more-cell {
+        text-align: center;
+        padding: 2rem;
+    }
+}
+
+.yearly-figures {
     .navigation {
         display: flex;
         flex-direction: row;
@@ -251,27 +298,6 @@ button {
             border: solid 0.2rem white;
             border-radius: var(--border-radius);
             text-align: center;
-        }
-    }
-
-    .month-table {
-        grid-column: span 12;
-        border: solid 0.2rem white;
-        border-radius: var(--border-radius);
-        overflow: auto;
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-
-            th, td {
-                padding: 1rem;
-                border-bottom: solid 0.2rem white;
-            }
-
-            th {
-                text-align: left;
-            }
         }
     }
 }

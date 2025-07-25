@@ -36,6 +36,7 @@ type SwimFigures struct {
 type SwimModel interface {
 	Get() (*Swim, error)
 	GetAll(userId int) ([]*Swim, error)
+	GetPaginated(userId int, limit int, offset int) ([]*Swim, error)
 	Insert(date time.Time, distanceM int, assessment int, userId int) error
 	Summarize(userId int) *SwimSummary
 }
@@ -115,6 +116,34 @@ func (sw *swimModel) Summarize(userId int) *SwimSummary {
 	summary.MonthlyCount = summary.YearMap[time.Now().Year()].MonthMap[time.Now().Month()].Count
 
 	return summary
+}
+
+func (sw *swimModel) GetPaginated(userId int, limit int, offset int) ([]*Swim, error) {
+	stmt := `SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY date DESC LIMIT $2 OFFSET $3;`
+
+	rows, err := sw.DB.Query(stmt, userId, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var swims []*Swim
+	for rows.Next() {
+		var s Swim
+		errScan := rows.Scan(&s.Date, &s.DistanceM, &s.Assessment)
+		if errScan != nil {
+			return nil, errScan
+		}
+
+		swims = append(swims, &s)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return swims, nil
 }
 
 func (sw *swimModel) Insert(date time.Time, distanceM int, assessment int, userId int) error {

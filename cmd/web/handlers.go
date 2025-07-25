@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+const (
+	itemsPerPage = 20
+	swimsTemplate = "swims.tmpl"
+)
+
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		app.notFound(w)
@@ -89,6 +94,70 @@ func (app *application) about(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) createSwim(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "swim-create.tmpl", app.newTemplateData(r, nil))
+}
+
+func (app *application) swimsList(w http.ResponseWriter, r *http.Request) {
+	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+	
+	swims, err := app.swims.GetPaginated(userId, itemsPerPage, 0)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	data := struct {
+		Swims  []*models.Swim
+		Offset int
+		Limit  int
+	}{swims, 0, itemsPerPage}
+
+	app.render(w, r, http.StatusOK, swimsTemplate, app.newTemplateData(r, data))
+}
+
+func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
+	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+	
+	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
+	if err != nil {
+		offset = 0
+	}
+
+	// Check if this is an HTMX request
+	if r.Header.Get("HX-Request") == "true" {
+		// Return partial HTML for HTMX
+		swims, err := app.swims.GetPaginated(userId, itemsPerPage, offset)
+		if err != nil {
+			app.serverError(w, r, err)
+			return
+		}
+
+		for _, swim := range swims {
+			app.renderPartial(w, r, swimsTemplate, "swim-row", swim)
+		}
+
+		// Add the new button row or end
+		if len(swims) == itemsPerPage {
+			nextOffset := offset + itemsPerPage
+			app.renderPartial(w, r, swimsTemplate, "load-more-button", nextOffset)
+		}
+		return
+	}
+
+	// For direct browser requests, show full page with all swims up to offset + 20
+	limit := offset + itemsPerPage
+	swims, err := app.swims.GetPaginated(userId, limit, 0)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	data := struct {
+		Swims  []*models.Swim
+		Offset int
+		Limit  int
+	}{swims, offset, itemsPerPage}
+
+	app.render(w, r, http.StatusOK, swimsTemplate, app.newTemplateData(r, data))
 }
 
 func (app *application) storeSwim(w http.ResponseWriter, r *http.Request) {
