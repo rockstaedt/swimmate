@@ -129,44 +129,7 @@ func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
 		}
 
 		for _, swim := range swims {
-			if _, err := w.Write([]byte(`<tr>`)); err != nil {
-				app.serverError(w, r, err)
-				return
-			}
-			if _, err := w.Write([]byte(`<td>` + swim.Date.Format("2006-01-02") + `</td>`)); err != nil {
-				app.serverError(w, r, err)
-				return
-			}
-			if _, err := w.Write([]byte(`<td>` + numberFormat(swim.DistanceM) + ` m</td>`)); err != nil {
-				app.serverError(w, r, err)
-				return
-			}
-			if _, err := w.Write([]byte(`<td>`)); err != nil {
-				app.serverError(w, r, err)
-				return
-			}
-			
-			for i := 0; i <= swim.Assessment; i++ {
-				if _, err := w.Write([]byte(`<i class="fas fa-star"></i>`)); err != nil {
-					app.serverError(w, r, err)
-					return
-				}
-			}
-			for i := swim.Assessment+1; i < 3; i++ {
-				if _, err := w.Write([]byte(`<i class="far fa-star"></i>`)); err != nil {
-					app.serverError(w, r, err)
-					return
-				}
-			}
-			
-			if _, err := w.Write([]byte(`</td>`)); err != nil {
-				app.serverError(w, r, err)
-				return
-			}
-			if _, err := w.Write([]byte(`</tr>`)); err != nil {
-				app.serverError(w, r, err)
-				return
-			}
+			app.renderPartial(w, r, "swims.tmpl", "swim-row", swim)
 		}
 
 		// Add the new button row or end
