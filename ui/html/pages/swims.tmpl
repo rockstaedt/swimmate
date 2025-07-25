@@ -1,0 +1,44 @@
+{{define "title"}}Swims{{end}}
+
+{{define "main"}}
+    <div class="swims-list">
+        <div class="month-table">
+            <table>
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Distance</th>
+                    <th>Assessment</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{range .Data.Swims}}
+                    <tr>
+                        <td>{{.Date.Format "2006-01-02"}}</td>
+                        <td>{{.DistanceM | numberFormat}} m</td>
+                        <td>
+                            {{range $i := seq (add .Assessment 1)}}
+                                <i class="fas fa-star"></i>
+                            {{end}}
+                            {{range $i := seq (sub 2 .Assessment)}}
+                                <i class="far fa-star"></i>
+                            {{end}}
+                        </td>
+                    </tr>
+                {{end}}
+                {{if eq (len .Data.Swims) (add .Data.Offset .Data.Limit)}}
+                    <tr id="load-more-row">
+                        <td colspan="3" style="text-align: center; padding: 2rem;">
+                            <button hx-get="/swims/more?offset={{add .Data.Offset .Data.Limit}}"
+                                    hx-target="#load-more-row"
+                                    hx-swap="outerHTML">
+                                Load More
+                            </button>
+                        </td>
+                    </tr>
+                {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{{end}}
