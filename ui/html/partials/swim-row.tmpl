@@ -6,7 +6,7 @@
         {{range $i := seq (add .Assessment 1)}}
             <i class="fas fa-star"></i>
         {{end}}
-        {{range $i := seq (sub 2 .Assessment)}}
+        {{range $i := seq (sub 2 (min .Assessment 2))}}
             <i class="far fa-star"></i>
         {{end}}
     </td>
