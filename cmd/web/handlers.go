@@ -8,7 +8,10 @@ import (
 	"time"
 )
 
-const itemsPerPage = 20
+const (
+	itemsPerPage = 20
+	swimsTemplate = "swims.tmpl"
+)
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
@@ -108,7 +111,7 @@ func (app *application) swimsList(w http.ResponseWriter, r *http.Request) {
 		Limit  int
 	}{swims, 0, itemsPerPage}
 
-	app.render(w, r, http.StatusOK, "swims.tmpl", app.newTemplateData(r, data))
+	app.render(w, r, http.StatusOK, swimsTemplate, app.newTemplateData(r, data))
 }
 
 func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
@@ -129,13 +132,13 @@ func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
 		}
 
 		for _, swim := range swims {
-			app.renderPartial(w, r, "swims.tmpl", "swim-row", swim)
+			app.renderPartial(w, r, swimsTemplate, "swim-row", swim)
 		}
 
 		// Add the new button row or end
 		if len(swims) == itemsPerPage {
 			newOffset := offset + itemsPerPage
-			app.renderPartial(w, r, "swims.tmpl", "load-more-button", newOffset)
+			app.renderPartial(w, r, swimsTemplate, "load-more-button", newOffset)
 		}
 		return
 	}
@@ -154,7 +157,7 @@ func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
 		Limit  int
 	}{swims, offset, itemsPerPage}
 
-	app.render(w, r, http.StatusOK, "swims.tmpl", app.newTemplateData(r, data))
+	app.render(w, r, http.StatusOK, swimsTemplate, app.newTemplateData(r, data))
 }
 
 func (app *application) storeSwim(w http.ResponseWriter, r *http.Request) {
