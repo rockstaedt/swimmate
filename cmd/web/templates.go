@@ -63,6 +63,7 @@ var functions = template.FuncMap{
 	"numberFormat": numberFormat,
 	"sub":          sub,
 	"add":          add,
+	"seq":          seq,
 }
 
 func numberFormat(n int) string {
@@ -86,6 +87,14 @@ func sub(a, b int) int {
 
 func add(a, b int) int {
 	return a + b
+}
+
+func seq(n int) []int {
+	result := make([]int, n)
+	for i := 0; i < n; i++ {
+		result[i] = i + 1
+	}
+	return result
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {
