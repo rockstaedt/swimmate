@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const itemsPerPage = 20
+
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		app.notFound(w)
@@ -94,7 +96,7 @@ func (app *application) createSwim(w http.ResponseWriter, r *http.Request) {
 func (app *application) swimsList(w http.ResponseWriter, r *http.Request) {
 	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
 	
-	swims, err := app.swims.GetPaginated(userId, 20, 0)
+	swims, err := app.swims.GetPaginated(userId, itemsPerPage, 0)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
@@ -104,7 +106,7 @@ func (app *application) swimsList(w http.ResponseWriter, r *http.Request) {
 		Swims  []*models.Swim
 		Offset int
 		Limit  int
-	}{swims, 0, 20}
+	}{swims, 0, itemsPerPage}
 
 	app.render(w, r, http.StatusOK, "swims.tmpl", app.newTemplateData(r, data))
 }
@@ -120,39 +122,66 @@ func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
 	// Check if this is an HTMX request
 	if r.Header.Get("HX-Request") == "true" {
 		// Return partial HTML for HTMX
-		swims, err := app.swims.GetPaginated(userId, 20, offset)
+		swims, err := app.swims.GetPaginated(userId, itemsPerPage, offset)
 		if err != nil {
 			app.serverError(w, r, err)
 			return
 		}
 
 		for _, swim := range swims {
-			w.Write([]byte(`<tr>`))
-			w.Write([]byte(`<td>` + swim.Date.Format("2006-01-02") + `</td>`))
-			w.Write([]byte(`<td>` + numberFormat(swim.DistanceM) + ` m</td>`))
-			w.Write([]byte(`<td>`))
+			if _, err := w.Write([]byte(`<tr>`)); err != nil {
+				app.serverError(w, r, err)
+				return
+			}
+			if _, err := w.Write([]byte(`<td>` + swim.Date.Format("2006-01-02") + `</td>`)); err != nil {
+				app.serverError(w, r, err)
+				return
+			}
+			if _, err := w.Write([]byte(`<td>` + numberFormat(swim.DistanceM) + ` m</td>`)); err != nil {
+				app.serverError(w, r, err)
+				return
+			}
+			if _, err := w.Write([]byte(`<td>`)); err != nil {
+				app.serverError(w, r, err)
+				return
+			}
 			
-			for i := 0; i < swim.Assessment+1; i++ {
-				w.Write([]byte(`<i class="fas fa-star"></i>`))
+			for i := 0; i <= swim.Assessment; i++ {
+				if _, err := w.Write([]byte(`<i class="fas fa-star"></i>`)); err != nil {
+					app.serverError(w, r, err)
+					return
+				}
 			}
 			for i := swim.Assessment+1; i < 3; i++ {
-				w.Write([]byte(`<i class="far fa-star"></i>`))
+				if _, err := w.Write([]byte(`<i class="far fa-star"></i>`)); err != nil {
+					app.serverError(w, r, err)
+					return
+				}
 			}
 			
-			w.Write([]byte(`</td>`))
-			w.Write([]byte(`</tr>`))
+			if _, err := w.Write([]byte(`</td>`)); err != nil {
+				app.serverError(w, r, err)
+				return
+			}
+			if _, err := w.Write([]byte(`</tr>`)); err != nil {
+				app.serverError(w, r, err)
+				return
+			}
 		}
 
 		// Add the new button row or end
-		if len(swims) == 20 {
-			newOffset := offset + 20
-			w.Write([]byte(`<tr id="load-more-row"><td colspan="3" style="text-align: center; padding: 2rem;"><button hx-get="/swims/more?offset=` + strconv.Itoa(newOffset) + `" hx-target="#load-more-row" hx-swap="outerHTML">Load More</button></td></tr>`))
+		if len(swims) == itemsPerPage {
+			newOffset := offset + itemsPerPage
+			if _, err := w.Write([]byte(`<tr id="load-more-row"><td colspan="3" style="text-align: center; padding: 2rem;"><button hx-get="/swims/more?offset=` + strconv.Itoa(newOffset) + `" hx-target="#load-more-row" hx-swap="outerHTML">Load More</button></td></tr>`)); err != nil {
+				app.serverError(w, r, err)
+				return
+			}
 		}
 		return
 	}
 
 	// For direct browser requests, show full page with all swims up to offset + 20
-	totalSwims := offset + 20
+	totalSwims := offset + itemsPerPage
 	swims, err := app.swims.GetPaginated(userId, totalSwims, 0)
 	if err != nil {
 		app.serverError(w, r, err)
@@ -163,7 +192,7 @@ func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
 		Swims  []*models.Swim
 		Offset int
 		Limit  int
-	}{swims, offset, 20}
+	}{swims, offset, itemsPerPage}
 
 	app.render(w, r, http.StatusOK, "swims.tmpl", app.newTemplateData(r, data))
 }
