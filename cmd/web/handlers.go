@@ -135,10 +135,7 @@ func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
 		// Add the new button row or end
 		if len(swims) == itemsPerPage {
 			newOffset := offset + itemsPerPage
-			if _, err := w.Write([]byte(`<tr id="load-more-row"><td colspan="3" style="text-align: center; padding: 2rem;"><button hx-get="/swims/more?offset=` + strconv.Itoa(newOffset) + `" hx-target="#load-more-row" hx-swap="outerHTML">Load More</button></td></tr>`)); err != nil {
-				app.serverError(w, r, err)
-				return
-			}
+			app.renderPartial(w, r, "swims.tmpl", "load-more-button", newOffset)
 		}
 		return
 	}
