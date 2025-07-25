@@ -258,6 +258,11 @@ button {
             font-size: 2rem;
         }
     }
+
+    .load-more-cell {
+        text-align: center;
+        padding: 2rem;
+    }
 }
 
 .yearly-figures {
