@@ -137,8 +137,8 @@ func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
 
 		// Add the new button row or end
 		if len(swims) == itemsPerPage {
-			newOffset := offset + itemsPerPage
-			app.renderPartial(w, r, swimsTemplate, "load-more-button", newOffset)
+			nextOffset := offset + itemsPerPage
+			app.renderPartial(w, r, swimsTemplate, "load-more-button", nextOffset)
 		}
 		return
 	}
