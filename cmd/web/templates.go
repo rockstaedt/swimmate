@@ -65,6 +65,7 @@ var functions = template.FuncMap{
 	"add":          add,
 	"seq":          seq,
 	"min":          min,
+	"emptyStars":   emptyStars,
 }
 
 func numberFormat(n int) string {
@@ -103,6 +104,11 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func emptyStars(assessment int) int {
+	maxStars := 2
+	return maxStars - min(assessment, maxStars)
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {
