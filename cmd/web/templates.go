@@ -108,6 +108,13 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	for _, page := range pages {
 		name := filepath.Base(page)
 		patterns := []string{"html/base.tmpl", page}
+		
+		// Add partials if they exist
+		partials, err := fs.Glob(ui.Files, "html/partials/*.tmpl")
+		if err != nil {
+			return nil, err
+		}
+		patterns = append(patterns, partials...)
 
 		ts, errPars := template.New(name).Funcs(functions).ParseFS(ui.Files, patterns...)
 		if errPars != nil {
