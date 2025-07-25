@@ -27,6 +27,8 @@ func (app *application) routes() http.Handler {
 	protected := dynamic.Append(app.requireAuthentication)
 
 	router.Handler(http.MethodGet, "/", protected.ThenFunc(app.home))
+	router.Handler(http.MethodGet, "/swims", protected.ThenFunc(app.swimsList))
+	router.Handler(http.MethodGet, "/swims/more", protected.ThenFunc(app.swimsMore))
 	router.Handler(http.MethodGet, "/yearly-figures", protected.ThenFunc(app.yearlyFigures))
 	router.Handler(http.MethodGet, "/swim", protected.ThenFunc(app.createSwim))
 	router.Handler(http.MethodPost, "/swim", protected.ThenFunc(app.storeSwim))
