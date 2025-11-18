@@ -153,6 +153,118 @@ func TestEmptyStars(t *testing.T) {
 	}
 }
 
+func TestDiv(t *testing.T) {
+	tests := []struct {
+		name     string
+		a        int
+		b        int
+		expected int
+	}{
+		{"positive division", 10, 2, 5},
+		{"division with remainder", 10, 3, 3},
+		{"division by zero", 10, 0, 0},
+		{"zero divided by number", 0, 5, 0},
+		{"both zero", 0, 0, 0},
+		{"negative dividend", -10, 2, -5},
+		{"negative divisor", 10, -2, -5},
+		{"both negative", -10, -2, 5},
+		{"large numbers", 1000000, 1000, 1000},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := div(tt.a, tt.b)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestAtoi(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected int
+	}{
+		{"zero", "0", 0},
+		{"positive number", "42", 42},
+		{"negative number", "-42", -42},
+		{"large number", "1234567", 1234567},
+		{"invalid string", "abc", 0},
+		{"empty string", "", 0},
+		{"mixed alphanumeric", "123abc", 0},
+		{"with spaces", " 42 ", 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := atoi(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestSlice(t *testing.T) {
+	tests := []struct {
+		name     string
+		s        string
+		start    int
+		end      int
+		expected string
+	}{
+		{"normal slice", "hello", 1, 4, "ell"},
+		{"from beginning", "hello", 0, 3, "hel"},
+		{"to end", "hello", 2, 5, "llo"},
+		{"full string", "hello", 0, 5, "hello"},
+		{"start negative", "hello", -1, 3, ""},
+		{"start out of bounds", "hello", 10, 15, ""},
+		{"end negative treats as length", "hello", 0, -1, "hello"},
+		{"end beyond length", "hello", 0, 10, "hello"},
+		{"start equals end", "hello", 2, 2, ""},
+		{"start greater than end", "hello", 3, 1, ""},
+		{"empty string", "", 0, 0, ""},
+		{"date year extraction", "2025-11-18", 0, 4, "2025"},
+		{"date month extraction", "2025-11-18", 5, 7, "11"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := slice(tt.s, tt.start, tt.end)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestMonthAbbr(t *testing.T) {
+	tests := []struct {
+		name     string
+		month    int
+		expected string
+	}{
+		{"January", 1, "J"},
+		{"February", 2, "F"},
+		{"March", 3, "M"},
+		{"April", 4, "A"},
+		{"May", 5, "M"},
+		{"June", 6, "J"},
+		{"July", 7, "J"},
+		{"August", 8, "A"},
+		{"September", 9, "S"},
+		{"October", 10, "O"},
+		{"November", 11, "N"},
+		{"December", 12, "D"},
+		{"zero (invalid)", 0, ""},
+		{"thirteen (invalid)", 13, ""},
+		{"negative (invalid)", -1, ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := monthAbbr(tt.month)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
 func TestNewFlash(t *testing.T) {
 	tests := []struct {
 		name          string
