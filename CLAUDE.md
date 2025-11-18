@@ -50,6 +50,28 @@ go test ./internal/models
 go vet ./...
 ```
 
+### Database Seeding
+
+Generate test users with random swim data using the seed command:
+
+```bash
+# Create a test user with 50 swims over the past year
+DB_DSN="postgres://swimmate:swimmate@localhost:5432/swimmate?sslmode=disable" \
+go run ./cmd/seed -username testuser
+
+# Create user with custom options
+DB_DSN="postgres://swimmate:swimmate@localhost:5432/swimmate?sslmode=disable" \
+go run ./cmd/seed \
+  -username john_swimmer \
+  -password mysecretpass \
+  -first-name John \
+  -last-name Doe \
+  -swims 100 \
+  -days-back 730
+```
+
+Available flags: `-username` (required), `-password`, `-first-name`, `-last-name`, `-email`, `-swims`, `-days-back`. See `cmd/seed/README.md` for details.
+
 ## Architecture
 
 ### Application Structure
@@ -57,6 +79,7 @@ go vet ./...
 **Standard Go Layout:**
 
 - `cmd/web/` - Main application entry point and HTTP handlers
+- `cmd/seed/` - Database seeding tool for creating test users with swim data
 - `internal/models/` - Data models and database interactions
 - `ui/` - Embedded filesystem containing HTML templates and static assets
 - `remote/production/` - Production deployment configuration (Caddy, systemd)
