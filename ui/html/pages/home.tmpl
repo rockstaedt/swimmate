@@ -47,45 +47,45 @@
         {{$currentYear := slice .CurrentDate 0 4}}
         {{$yearData := index .Data.YearMap (atoi $currentYear)}}
         {{if $yearData}}
-        <div class="dashboard-chart cumulative-chart">
-            <h3><i class="fas fa-chart-line"></i> Year Progress - Cumulative Distance</h3>
-            <div class="cumulative-container">
-                {{$currentMonth := atoi (slice .CurrentDate 5 7)}}
-                {{$cumulative := 0}}
-                {{$maxCumulative := 0}}
-                {{range $month := seq $currentMonth}}
-                    {{$monthData := index $yearData.MonthMap $month}}
-                    {{if $monthData}}
-                        {{$cumulative = add $cumulative $monthData.DistanceM}}
-                        {{if gt $cumulative $maxCumulative}}
-                            {{$maxCumulative = $cumulative}}
+            <div class="dashboard-chart cumulative-chart">
+                <h3><i class="fas fa-chart-line"></i> Year Progress</h3>
+                <div class="cumulative-container">
+                    {{$currentMonth := atoi (slice .CurrentDate 5 7)}}
+                    {{$cumulative := 0}}
+                    {{$maxCumulative := 0}}
+                    {{range $month := seq $currentMonth}}
+                        {{$monthData := index $yearData.MonthMap $month}}
+                        {{if $monthData}}
+                            {{$cumulative = add $cumulative $monthData.DistanceM}}
+                            {{if gt $cumulative $maxCumulative}}
+                                {{$maxCumulative = $cumulative}}
+                            {{end}}
                         {{end}}
                     {{end}}
-                {{end}}
 
-                {{$cumulative = 0}}
-                {{range $month := seq $currentMonth}}
-                    {{$monthData := index $yearData.MonthMap $month}}
-                    {{if $monthData}}
-                        {{$cumulative = add $cumulative $monthData.DistanceM}}
-                    {{end}}
-                    <div class="cumulative-bar">
-                        <div class="month-label">{{monthAbbr $month}}</div>
-                        <div class="bar-area">
-                            {{if gt $maxCumulative 0}}
-                            <div class="bar cumulative"
-                                 style="--value: {{$cumulative}}; --max: {{$maxCumulative}}"
-                                 title="{{$cumulative | numberFormat}}m">
+                    {{$cumulative = 0}}
+                    {{range $month := seq $currentMonth}}
+                        {{$monthData := index $yearData.MonthMap $month}}
+                        {{if $monthData}}
+                            {{$cumulative = add $cumulative $monthData.DistanceM}}
+                        {{end}}
+                        <div class="cumulative-bar">
+                            <div class="month-label">{{monthAbbr $month}}</div>
+                            <div class="bar-area">
+                                {{if gt $maxCumulative 0}}
+                                    <div class="bar cumulative"
+                                         style="--value: {{$cumulative}}; --max: {{$maxCumulative}}"
+                                         title="{{$cumulative | numberFormat}}m">
+                                    </div>
+                                {{else}}
+                                    <div class="bar cumulative" style="--value: 0; --max: 1"></div>
+                                {{end}}
                             </div>
-                            {{else}}
-                            <div class="bar cumulative" style="--value: 0; --max: 1"></div>
-                            {{end}}
+                            <span class="cumulative-value">{{if gt $cumulative 999}}{{printf "%dk" (div $cumulative 1000)}}{{else if gt $cumulative 0}}{{$cumulative}}{{end}}</span>
                         </div>
-                        <span class="cumulative-value">{{if gt $cumulative 999}}{{printf "%dk" (div $cumulative 1000)}}{{else if gt $cumulative 0}}{{$cumulative}}{{end}}</span>
-                    </div>
-                {{end}}
+                    {{end}}
+                </div>
             </div>
-        </div>
         {{end}}
 
         <div class="dashboard-details">
