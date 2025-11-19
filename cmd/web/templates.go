@@ -16,6 +16,8 @@ type templateData struct {
 	Flash           *Flash
 	IsAuthenticated bool
 	CurrentDate     string
+	CurrentYear     int
+	CurrentMonth    int
 }
 
 type Flash struct {
@@ -34,12 +36,15 @@ func (app *application) newTemplateData(r *http.Request, data interface{}) templ
 		app.sessionManager.PopString(r.Context(), "flashType"),
 	)
 
+	now := time.Now()
 	return templateData{
 		Version:         versionTxt,
 		Data:            data,
 		Flash:           flash,
 		IsAuthenticated: app.isAuthenticated(r),
-		CurrentDate:     time.Now().Format("2006-01-02"),
+		CurrentDate:     now.Format("2006-01-02"),
+		CurrentYear:     now.Year(),
+		CurrentMonth:    int(now.Month()),
 	}
 }
 
