@@ -72,12 +72,18 @@
                 dropdown.style.display = isHidden ? 'block' : 'none';
             });
 
-            document.addEventListener('click', function (event) {
+            if (window._navClickOutsideHandler) {
+                document.removeEventListener('click', window._navClickOutsideHandler);
+            }
+
+            window._navClickOutsideHandler = function (event) {
                 if (!dropdown.contains(event.target) && !navIcon.contains(event.target)) {
                     dropdown.style.display = 'none';
                     navIcon.classList.remove('spin');
                 }
-            });
+            };
+
+            document.addEventListener('click', window._navClickOutsideHandler);
         }
 
         window.setTimeout(function () {
