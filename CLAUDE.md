@@ -180,6 +180,8 @@ For brand-new files, use the one-liner
 `git restore --staged :/ && git add "path/to/file1" "path/to/file2" && git commit -m "<scoped message>" -- path/to/file1 path/to/file2`
 
 **Commit Message Guidelines:**
+
 - Subject line must be 50 characters or less
 - Use imperative mood (e.g., "Fix bug" not "Fixed bug")
 - Keep commits atomic and focused on a single change
+- Before each commit, run tests and linters to ensure code quality
