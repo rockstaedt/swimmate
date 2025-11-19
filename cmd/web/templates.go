@@ -131,7 +131,7 @@ func atoi(s string) int {
 }
 
 func slice(s string, start, end int) string {
-	if start < 0 || start >= len(s) {
+	if start < 0 || start > len(s) {
 		return ""
 	}
 	if end < 0 || end > len(s) {
