@@ -3,8 +3,8 @@ module github.com/rockstaedt/swimmate
 go 1.25
 
 require (
-	github.com/alexedwards/scs/postgresstore v0.0.0-20240316134038-7e11d57e8885
-	github.com/alexedwards/scs/v2 v2.8.0
+	github.com/alexedwards/scs/postgresstore v0.0.0-20251002162104-209de6e426de
+	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/justinas/alice v1.2.0
 	github.com/lib/pq v1.10.9
@@ -13,7 +13,7 @@ require (
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/crypto v0.23.0
+	golang.org/x/crypto v0.44.0
 )
 
 require (
