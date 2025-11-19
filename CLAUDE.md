@@ -40,6 +40,12 @@ go test ./internal/models
 go vet ./...
 ```
 
+### Linting
+
+```bash
+golangci-lint run
+```
+
 ### Database Seeding
 
 Generate test users with random swim data using the seed command:
