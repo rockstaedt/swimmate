@@ -61,16 +61,27 @@
         {{template "main" .}}
     </main>
     <script>
-        const navIcon = document.querySelector('.nav-icon');
-        const dropdown = document.querySelector('.nav-items');
+        function setupNavigationDropdown() {
+            const navIcon = document.querySelector('.nav-icon');
+            const dropdown = document.querySelector('.nav-items');
 
-        if (navIcon && dropdown) {
-            navIcon.addEventListener('click', function (event) {
+            if (!(navIcon && dropdown)) {
+                return;
+            }
+
+            if (window._navToggleHandler && window._navToggleElement) {
+                window._navToggleElement.removeEventListener('click', window._navToggleHandler);
+            }
+
+            window._navToggleHandler = function (event) {
                 event.stopPropagation();
                 this.classList.toggle('spin');
                 const isHidden = dropdown.style.display === 'none' || dropdown.style.display === '';
                 dropdown.style.display = isHidden ? 'block' : 'none';
-            });
+            };
+
+            navIcon.addEventListener('click', window._navToggleHandler);
+            window._navToggleElement = navIcon;
 
             if (window._navClickOutsideHandler) {
                 document.removeEventListener('click', window._navClickOutsideHandler);
@@ -84,6 +95,15 @@
             };
 
             document.addEventListener('click', window._navClickOutsideHandler);
+        }
+
+        setupNavigationDropdown();
+
+        if (!window._navReinitAttached) {
+            document.body.addEventListener('htmx:afterSwap', function () {
+                setupNavigationDropdown();
+            });
+            window._navReinitAttached = true;
         }
 
         window.setTimeout(function () {
