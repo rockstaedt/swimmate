@@ -27,6 +27,13 @@
 
         <script src="https://kit.fontawesome.com/5a7b8770d3.js" crossorigin="anonymous"></script>
         <script src="/static/js/htmx.min.js" type="text/javascript" defer></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                if (window.htmx) {
+                    htmx.config.scrollIntoViewOnBoost = false;
+                }
+            });
+        </script>
     </head>
     <body hx-boost="true" hx-target="body" hx-push-url="true" hx-swap="innerHTML scroll:top">
     <header>
