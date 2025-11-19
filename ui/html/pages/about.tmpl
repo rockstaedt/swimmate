@@ -1,8 +1,53 @@
 {{define "title"}}About{{end}}
 {{define "main"}}
     <div class="about">
-        <div>
-            <p>Powered by <a href='https://github.com/rockstaedt/'>rockstaedt</a> | {{.Version}}</p>
+        <div class="about-header">
+            <h1><i class="fas fa-swimming-pool"></i> SwimMate</h1>
+            <p class="subtitle">Your Personal Swimming Training Companion</p>
+        </div>
+
+        <div class="about-section">
+            <h2><i class="fas fa-info-circle"></i> What is SwimMate?</h2>
+            <p>SwimMate is a lightweight web application designed to help swimmers track their training sessions and monitor their progress over time. Whether you're a competitive swimmer, fitness enthusiast, or just enjoy swimming for leisure, SwimMate provides you with the tools to log your swims and visualize your achievements.</p>
+        </div>
+
+        <div class="about-section">
+            <h2><i class="fas fa-star"></i> Features</h2>
+            <ul class="feature-list">
+                <li><i class="fas fa-chart-line"></i> Track swim sessions with date, distance, and personal assessment</li>
+                <li><i class="fas fa-chart-bar"></i> View comprehensive statistics including weekly, monthly, and yearly totals</li>
+                <li><i class="fas fa-calendar-alt"></i> Visualize your progress with interactive charts and year-over-year comparisons</li>
+                <li><i class="fas fa-list"></i> Browse your complete swim history with pagination</li>
+                <li><i class="fas fa-tachometer-alt"></i> Monitor cumulative progress throughout the year</li>
+            </ul>
+        </div>
+
+        <div class="about-section">
+            <h2><i class="fas fa-code"></i> Technology</h2>
+            <p>SwimMate is built with a focus on simplicity, performance, and reliability using modern web technologies:</p>
+            <ul class="tech-list">
+                <li><strong>Backend:</strong> Go (Golang) with server-side rendering</li>
+                <li><strong>Database:</strong> PostgreSQL for robust data persistence</li>
+                <li><strong>Frontend:</strong> HTML templates with modern CSS and HTMX for dynamic interactions</li>
+                <li><strong>Security:</strong> Bcrypt password hashing and secure session management</li>
+            </ul>
+        </div>
+
+        <div class="about-section">
+            <h2><i class="fas fa-bullseye"></i> Philosophy</h2>
+            <p>SwimMate embraces a minimalist approach to swim tracking. No complex features, no overwhelming analytics—just the essential tools you need to log your swims and see your progress. The application prioritizes speed, reliability, and ease of use, making it effortless to maintain your swimming records.</p>
+        </div>
+
+        <div class="about-footer">
+            <div class="footer-links">
+                <a href="https://github.com/rockstaedt/swimmate" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-github"></i> View on GitHub
+                </a>
+                <span class="separator">|</span>
+                <span>Version {{.Version}}</span>
+                <span class="separator">|</span>
+                <span>Created by <a href="https://github.com/rockstaedt/" target="_blank" rel="noopener noreferrer">rockstaedt</a></span>
+            </div>
         </div>
     </div>
 {{end}}
