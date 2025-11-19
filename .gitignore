@@ -3,4 +3,4 @@
 /tmp
 /dump.psql.gz
 /.claude/*
-/coverage.out
+/coverage*
