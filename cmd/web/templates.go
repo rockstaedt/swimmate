@@ -149,7 +149,7 @@ func slice(s string, start, end int) string {
 }
 
 func monthAbbr(month int) string {
-	abbrs := []string{"J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"}
+	abbrs := []string{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
 	if month < 1 || month > 12 {
 		return ""
 	}
