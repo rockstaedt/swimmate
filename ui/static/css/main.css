@@ -1137,6 +1137,11 @@ button {
                 }
             }
 
+            th.actions-header {
+                text-align: right;
+                width: 1%;
+            }
+
             tbody tr {
                 transition: all var(--transition-fast);
                 border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -1154,6 +1159,35 @@ button {
                 padding: 1.4rem 1.5rem;
                 font-size: 1.5rem;
                 color: var(--color-text-muted);
+            }
+
+            td.swim-actions {
+                text-align: right;
+                white-space: nowrap;
+            }
+
+            .edit-swim-button {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                padding: 0.4rem 1rem;
+                border-radius: var(--border-radius);
+                background: rgba(6, 182, 212, 0.15);
+                color: var(--color-blue-light);
+                font-size: 1.4rem;
+                font-weight: 600;
+                text-decoration: none;
+                transition: all var(--transition-fast);
+
+                i {
+                    font-size: 1.2rem;
+                }
+
+                &:hover {
+                    background: var(--color-blue-accent);
+                    color: var(--color-text);
+                    box-shadow: var(--shadow-sm);
+                }
             }
 
             .fas.fa-star, .far.fa-star {

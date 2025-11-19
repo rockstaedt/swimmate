@@ -1,6 +1,6 @@
 {{define "load-more-button"}}
 <tr id="load-more-row">
-    <td colspan="3" class="load-more-cell">
+    <td colspan="4" class="load-more-cell">
         <button hx-get="/swims/more?offset={{.NextOffset}}&sort={{.Sort}}&direction={{.Direction}}"
                 hx-target="#load-more-row"
                 hx-swap="outerHTML">
