@@ -25,11 +25,18 @@
         <div class="dashboard-chart">
             <h3><i class="fas fa-chart-bar"></i> Activity Overview</h3>
             <div class="chart-container">
+                {{$maxCount := .Data.MonthlyCount}}
+                {{if gt .Data.WeeklyCount $maxCount}}
+                    {{$maxCount = .Data.WeeklyCount}}
+                {{end}}
+                {{if eq $maxCount 0}}
+                    {{$maxCount = 10}}
+                {{end}}
                 <div class="chart-bar">
                     <div class="bar-label">This Week</div>
                     <div class="bar-wrapper">
                         <div class="bar weekly"
-                             style="--value: {{ .Data.WeeklyCount }}; --max: {{ if gt .Data.MonthlyCount 0 }}{{ .Data.MonthlyCount }}{{ else }}10{{ end }}"></div>
+                             style="--value: {{ .Data.WeeklyCount }}; --max: {{ $maxCount }}"></div>
                         <span class="bar-value">{{ .Data.WeeklyCount }}</span>
                     </div>
                 </div>
@@ -37,7 +44,7 @@
                     <div class="bar-label">This Month</div>
                     <div class="bar-wrapper">
                         <div class="bar monthly"
-                             style="--value: {{ .Data.MonthlyCount }}; --max: {{ if gt .Data.MonthlyCount 0 }}{{ .Data.MonthlyCount }}{{ else }}10{{ end }}"></div>
+                             style="--value: {{ .Data.MonthlyCount }}; --max: {{ $maxCount }}"></div>
                         <span class="bar-value">{{ .Data.MonthlyCount }}</span>
                     </div>
                 </div>
