@@ -27,6 +27,13 @@
 
         <script src="https://kit.fontawesome.com/5a7b8770d3.js" crossorigin="anonymous"></script>
         <script src="/static/js/htmx.min.js" type="text/javascript" defer></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                if (window.htmx) {
+                    htmx.config.scrollIntoViewOnBoost = false;
+                }
+            });
+        </script>
     </head>
     <body hx-boost="true" hx-target="body" hx-push-url="true" hx-swap="innerHTML scroll:top">
     <header>
@@ -54,13 +61,30 @@
         {{template "main" .}}
     </main>
     <script>
-        document.querySelector('.nav-icon').addEventListener('click', function () {
-            this.classList.toggle('spin');
-            let dropdown = document.querySelector('.nav-items');
-            dropdown.style.display = dropdown.style.display === 'none' || dropdown.style.display === ''
-                ? 'block'
-                : 'none';
-        });
+        const navIcon = document.querySelector('.nav-icon');
+        const dropdown = document.querySelector('.nav-items');
+
+        if (navIcon && dropdown) {
+            navIcon.addEventListener('click', function (event) {
+                event.stopPropagation();
+                this.classList.toggle('spin');
+                const isHidden = dropdown.style.display === 'none' || dropdown.style.display === '';
+                dropdown.style.display = isHidden ? 'block' : 'none';
+            });
+
+            if (window._navClickOutsideHandler) {
+                document.removeEventListener('click', window._navClickOutsideHandler);
+            }
+
+            window._navClickOutsideHandler = function (event) {
+                if (!dropdown.contains(event.target) && !navIcon.contains(event.target)) {
+                    dropdown.style.display = 'none';
+                    navIcon.classList.remove('spin');
+                }
+            };
+
+            document.addEventListener('click', window._navClickOutsideHandler);
+        }
 
         window.setTimeout(function () {
             let flash = document.querySelector('.flash');
