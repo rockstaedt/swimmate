@@ -99,7 +99,7 @@ func createSchema(db *sql.DB) error {
 		CREATE TABLE IF NOT EXISTS swims (
 			id bigint PRIMARY KEY DEFAULT nextval('tracks_track_id_seq'),
 			date date NOT NULL,
-			distance_m double precision NOT NULL,
+			distance_m integer NOT NULL,
 			assessment integer NOT NULL,
 			user_id integer NOT NULL REFERENCES users(id)
 		);
