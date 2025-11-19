@@ -6,25 +6,58 @@
             <table>
                 <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Distance</th>
-                    <th>Assessment</th>
+                    {{ $sort := .Data.Sort }}
+                    {{ $direction := .Data.Direction }}
+                    {{ $dateNext := "asc" }}
+                    {{ if and (eq $sort "date") (eq $direction "asc") }}
+                        {{ $dateNext = "desc" }}
+                    {{ end }}
+                    {{ $distanceNext := "asc" }}
+                    {{ if and (eq $sort "distance") (eq $direction "asc") }}
+                        {{ $distanceNext = "desc" }}
+                    {{ end }}
+                    {{ $assessmentNext := "asc" }}
+                    {{ if and (eq $sort "assessment") (eq $direction "asc") }}
+                        {{ $assessmentNext = "desc" }}
+                    {{ end }}
+                    <th>
+                        <a class="sort-button" href="/swims?sort=date&direction={{$dateNext}}">
+                            Date
+                            {{if eq $sort "date"}}
+                                <span class="sort-indicator">
+                                    {{if eq $direction "asc"}}↑{{else}}↓{{end}}
+                                </span>
+                            {{end}}
+                        </a>
+                    </th>
+                    <th>
+                        <a class="sort-button" href="/swims?sort=distance&direction={{$distanceNext}}">
+                            Distance
+                            {{if eq $sort "distance"}}
+                                <span class="sort-indicator">
+                                    {{if eq $direction "asc"}}↑{{else}}↓{{end}}
+                                </span>
+                            {{end}}
+                        </a>
+                    </th>
+                    <th>
+                        <a class="sort-button" href="/swims?sort=assessment&direction={{$assessmentNext}}">
+                            Assessment
+                            {{if eq $sort "assessment"}}
+                                <span class="sort-indicator">
+                                    {{if eq $direction "asc"}}↑{{else}}↓{{end}}
+                                </span>
+                            {{end}}
+                        </a>
+                    </th>
                 </tr>
                 </thead>
                 <tbody>
                 {{range .Data.Swims}}
                     {{template "swim-row" .}}
                 {{end}}
-                {{if eq (len .Data.Swims) .Data.Limit}}
-                    <tr id="load-more-row">
-                        <td colspan="3" class="load-more-cell">
-                            <button hx-get="/swims/more?offset={{add .Data.Offset .Data.Limit}}"
-                                    hx-target="#load-more-row"
-                                    hx-swap="outerHTML">
-                                Load More
-                            </button>
-                        </td>
-                    </tr>
+                {{if .Data.LoadMore}}
+                    {{template "load-more-button" .Data.LoadMore}}
                 {{end}}
                 </tbody>
             </table>

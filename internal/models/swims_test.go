@@ -3,6 +3,8 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -302,21 +304,30 @@ func TestSwimModelGetPaginated(t *testing.T) {
 		userId        int
 		limit         int
 		offset        int
+		sort          string
+		direction     string
 		setupMock     func(mock sqlmock.Sqlmock)
 		expectError   bool
 		expectedSwims []*Swim
 		errorMsg      string
 	}{
 		{
-			name:   "successful pagination - first page",
-			userId: 1,
-			limit:  2,
-			offset: 0,
+			name:      "successful pagination - first page",
+			userId:    1,
+			limit:     2,
+			offset:    0,
+			sort:      SwimSortDate,
+			direction: SortDirectionDesc,
 			setupMock: func(mock sqlmock.Sqlmock) {
+				query := regexp.QuoteMeta(fmt.Sprintf(
+					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					sortColumnMap[SwimSortDate],
+					"DESC",
+				))
 				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
 					AddRow(time.Date(2024, 1, 3, 0, 0, 0, 0, time.UTC), 2000, 2).
 					AddRow(time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC), 1500, 2)
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date DESC LIMIT \\$2 OFFSET \\$3").
+				mock.ExpectQuery(query).
 					WithArgs(1, 2, 0).
 					WillReturnRows(rows)
 			},
@@ -327,14 +338,21 @@ func TestSwimModelGetPaginated(t *testing.T) {
 			},
 		},
 		{
-			name:   "successful pagination - second page",
-			userId: 1,
-			limit:  2,
-			offset: 2,
+			name:      "successful pagination - second page",
+			userId:    1,
+			limit:     2,
+			offset:    2,
+			sort:      SwimSortDate,
+			direction: SortDirectionDesc,
 			setupMock: func(mock sqlmock.Sqlmock) {
+				query := regexp.QuoteMeta(fmt.Sprintf(
+					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					sortColumnMap[SwimSortDate],
+					"DESC",
+				))
 				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
 					AddRow(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), 1000, 1)
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date DESC LIMIT \\$2 OFFSET \\$3").
+				mock.ExpectQuery(query).
 					WithArgs(1, 2, 2).
 					WillReturnRows(rows)
 			},
@@ -344,13 +362,20 @@ func TestSwimModelGetPaginated(t *testing.T) {
 			},
 		},
 		{
-			name:   "empty result - offset beyond records",
-			userId: 1,
-			limit:  20,
-			offset: 100,
+			name:      "empty result - offset beyond records",
+			userId:    1,
+			limit:     20,
+			offset:    100,
+			sort:      SwimSortDate,
+			direction: SortDirectionDesc,
 			setupMock: func(mock sqlmock.Sqlmock) {
+				query := regexp.QuoteMeta(fmt.Sprintf(
+					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					sortColumnMap[SwimSortDate],
+					"DESC",
+				))
 				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"})
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date DESC LIMIT \\$2 OFFSET \\$3").
+				mock.ExpectQuery(query).
 					WithArgs(1, 20, 100).
 					WillReturnRows(rows)
 			},
@@ -358,17 +383,24 @@ func TestSwimModelGetPaginated(t *testing.T) {
 			expectedSwims: nil,
 		},
 		{
-			name:   "exact multiple of page size",
-			userId: 1,
-			limit:  20,
-			offset: 0,
+			name:      "exact multiple of page size",
+			userId:    1,
+			limit:     20,
+			offset:    0,
+			sort:      SwimSortDate,
+			direction: SortDirectionDesc,
 			setupMock: func(mock sqlmock.Sqlmock) {
+				query := regexp.QuoteMeta(fmt.Sprintf(
+					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					sortColumnMap[SwimSortDate],
+					"DESC",
+				))
 				// Simulate exactly 20 records
 				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"})
 				for i := 20; i > 0; i-- {
 					rows.AddRow(time.Date(2024, 1, i, 0, 0, 0, 0, time.UTC), 1000*i, 2)
 				}
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date DESC LIMIT \\$2 OFFSET \\$3").
+				mock.ExpectQuery(query).
 					WithArgs(1, 20, 0).
 					WillReturnRows(rows)
 			},
@@ -386,12 +418,19 @@ func TestSwimModelGetPaginated(t *testing.T) {
 			}(),
 		},
 		{
-			name:   "database error on paginated query",
-			userId: 1,
-			limit:  20,
-			offset: 0,
+			name:      "database error on paginated query",
+			userId:    1,
+			limit:     20,
+			offset:    0,
+			sort:      SwimSortDate,
+			direction: SortDirectionDesc,
 			setupMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date DESC LIMIT \\$2 OFFSET \\$3").
+				query := regexp.QuoteMeta(fmt.Sprintf(
+					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					sortColumnMap[SwimSortDate],
+					"DESC",
+				))
+				mock.ExpectQuery(query).
 					WithArgs(1, 20, 0).
 					WillReturnError(errors.New("pagination query failed"))
 			},
@@ -400,16 +439,23 @@ func TestSwimModelGetPaginated(t *testing.T) {
 			errorMsg:      "pagination query failed",
 		},
 		{
-			name:   "ordering verification - DESC order",
-			userId: 2,
-			limit:  3,
-			offset: 0,
+			name:      "ordering verification - DESC order",
+			userId:    2,
+			limit:     3,
+			offset:    0,
+			sort:      SwimSortDate,
+			direction: SortDirectionDesc,
 			setupMock: func(mock sqlmock.Sqlmock) {
+				query := regexp.QuoteMeta(fmt.Sprintf(
+					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					sortColumnMap[SwimSortDate],
+					"DESC",
+				))
 				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
 					AddRow(time.Date(2024, 12, 31, 0, 0, 0, 0, time.UTC), 3000, 2).
 					AddRow(time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC), 2000, 2).
 					AddRow(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), 1000, 1)
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date DESC LIMIT \\$2 OFFSET \\$3").
+				mock.ExpectQuery(query).
 					WithArgs(2, 3, 0).
 					WillReturnRows(rows)
 			},
@@ -418,6 +464,44 @@ func TestSwimModelGetPaginated(t *testing.T) {
 				{Date: time.Date(2024, 12, 31, 0, 0, 0, 0, time.UTC), DistanceM: 3000, Assessment: 2},
 				{Date: time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC), DistanceM: 2000, Assessment: 2},
 				{Date: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), DistanceM: 1000, Assessment: 1},
+			},
+		},
+		{
+			name:      "sorting by distance ascending",
+			userId:    1,
+			limit:     5,
+			offset:    0,
+			sort:      SwimSortDistance,
+			direction: SortDirectionAsc,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				query := regexp.QuoteMeta(fmt.Sprintf(
+					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					sortColumnMap[SwimSortDistance],
+					"ASC",
+				))
+				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"})
+				mock.ExpectQuery(query).
+					WithArgs(1, 5, 0).
+					WillReturnRows(rows)
+			},
+		},
+		{
+			name:      "invalid sort and direction fall back to defaults",
+			userId:    1,
+			limit:     5,
+			offset:    0,
+			sort:      "invalid",
+			direction: "weird",
+			setupMock: func(mock sqlmock.Sqlmock) {
+				query := regexp.QuoteMeta(fmt.Sprintf(
+					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					sortColumnMap[SwimSortDate],
+					"DESC",
+				))
+				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"})
+				mock.ExpectQuery(query).
+					WithArgs(1, 5, 0).
+					WillReturnRows(rows)
 			},
 		},
 	}
@@ -433,7 +517,7 @@ func TestSwimModelGetPaginated(t *testing.T) {
 			tt.setupMock(mock)
 
 			model := NewSwimModel(db)
-			swims, err := model.GetPaginated(tt.userId, tt.limit, tt.offset)
+			swims, err := model.GetPaginated(tt.userId, tt.limit, tt.offset, tt.sort, tt.direction)
 
 			if tt.expectError {
 				assert.Error(t, err)

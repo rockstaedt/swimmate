@@ -287,29 +287,46 @@ func TestCreateSwim(t *testing.T) {
 
 func TestSwimsList(t *testing.T) {
 	tests := []struct {
-		name          string
-		setupMock     func(*testutils.MockSwimModel)
-		expectedError bool
+		name       string
+		requestURL string
+		setupMock  func(*testutils.MockSwimModel, *testing.T)
+		wantErr    bool
 	}{
 		{
-			name: "successful list",
-			setupMock: func(m *testutils.MockSwimModel) {
-				m.GetPaginatedFunc = func(userId int, limit int, offset int) ([]*models.Swim, error) {
+			name:       "successful list with default sort",
+			requestURL: "/swims",
+			setupMock: func(m *testutils.MockSwimModel, t *testing.T) {
+				m.GetPaginatedFunc = func(userId int, limit int, offset int, sort string, direction string) ([]*models.Swim, error) {
+					assert.Equal(t, models.SwimSortDate, sort)
+					assert.Equal(t, models.SortDirectionDesc, direction)
 					return []*models.Swim{
 						{Date: time.Now(), DistanceM: 1000, Assessment: 2},
 					}, nil
 				}
 			},
-			expectedError: false,
 		},
 		{
-			name: "database error",
-			setupMock: func(m *testutils.MockSwimModel) {
-				m.GetPaginatedFunc = func(userId int, limit int, offset int) ([]*models.Swim, error) {
+			name:       "custom sort parameters",
+			requestURL: "/swims?sort=distance&direction=asc",
+			setupMock: func(m *testutils.MockSwimModel, t *testing.T) {
+				m.GetPaginatedFunc = func(userId int, limit int, offset int, sort string, direction string) ([]*models.Swim, error) {
+					assert.Equal(t, models.SwimSortDistance, sort)
+					assert.Equal(t, models.SortDirectionAsc, direction)
+					return []*models.Swim{
+						{Date: time.Now(), DistanceM: 850, Assessment: 1},
+					}, nil
+				}
+			},
+		},
+		{
+			name:       "database error",
+			requestURL: "/swims",
+			setupMock: func(m *testutils.MockSwimModel, t *testing.T) {
+				m.GetPaginatedFunc = func(userId int, limit int, offset int, sort string, direction string) ([]*models.Swim, error) {
 					return nil, errors.New("database error")
 				}
 			},
-			expectedError: true,
+			wantErr: true,
 		},
 	}
 
@@ -317,13 +334,13 @@ func TestSwimsList(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			app := newTestApplication()
 			mockSwims := &testutils.MockSwimModel{}
-			tt.setupMock(mockSwims)
+			tt.setupMock(mockSwims, t)
 			app.swims = mockSwims
 
 			app.templateCache["swims.tmpl"] = createTestTemplate("base", `{{define "base"}}Swims{{end}}`)
 
 			rr := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/swims", nil)
+			r := httptest.NewRequest(http.MethodGet, tt.requestURL, nil)
 
 			ctx, _ := app.sessionManager.Load(r.Context(), "")
 			app.sessionManager.Put(ctx, "authenticatedUserID", 1)
@@ -331,7 +348,7 @@ func TestSwimsList(t *testing.T) {
 
 			app.swimsList(rr, r)
 
-			if tt.expectedError {
+			if tt.wantErr {
 				assert.Equal(t, http.StatusInternalServerError, rr.Code)
 			} else {
 				assert.Equal(t, http.StatusOK, rr.Code)
@@ -343,17 +360,19 @@ func TestSwimsList(t *testing.T) {
 func TestSwimsMore(t *testing.T) {
 	tests := []struct {
 		name         string
-		offset       string
+		requestURL   string
 		htmxRequest  bool
-		setupMock    func(*testutils.MockSwimModel)
+		setupMock    func(*testutils.MockSwimModel, *testing.T)
 		expectStatus int
 	}{
 		{
 			name:        "HTMX request with swims",
-			offset:      "20",
+			requestURL:  "/swims/more?offset=20",
 			htmxRequest: true,
-			setupMock: func(m *testutils.MockSwimModel) {
-				m.GetPaginatedFunc = func(userId int, limit int, offset int) ([]*models.Swim, error) {
+			setupMock: func(m *testutils.MockSwimModel, t *testing.T) {
+				m.GetPaginatedFunc = func(userId int, limit int, offset int, sort string, direction string) ([]*models.Swim, error) {
+					assert.Equal(t, models.SwimSortDate, sort)
+					assert.Equal(t, models.SortDirectionDesc, direction)
 					swims := make([]*models.Swim, 20)
 					for i := 0; i < 20; i++ {
 						swims[i] = &models.Swim{Date: time.Now(), DistanceM: 1000, Assessment: 2}
@@ -364,11 +383,13 @@ func TestSwimsMore(t *testing.T) {
 			expectStatus: http.StatusOK,
 		},
 		{
-			name:        "regular request",
-			offset:      "20",
+			name:        "regular request with custom sort",
+			requestURL:  "/swims/more?offset=20&sort=assessment&direction=asc",
 			htmxRequest: false,
-			setupMock: func(m *testutils.MockSwimModel) {
-				m.GetPaginatedFunc = func(userId int, limit int, offset int) ([]*models.Swim, error) {
+			setupMock: func(m *testutils.MockSwimModel, t *testing.T) {
+				m.GetPaginatedFunc = func(userId int, limit int, offset int, sort string, direction string) ([]*models.Swim, error) {
+					assert.Equal(t, models.SwimSortAssessment, sort)
+					assert.Equal(t, models.SortDirectionAsc, direction)
 					return []*models.Swim{
 						{Date: time.Now(), DistanceM: 1000, Assessment: 2},
 					}, nil
@@ -382,7 +403,7 @@ func TestSwimsMore(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			app := newTestApplication()
 			mockSwims := &testutils.MockSwimModel{}
-			tt.setupMock(mockSwims)
+			tt.setupMock(mockSwims, t)
 			app.swims = mockSwims
 
 			app.templateCache["swims.tmpl"] = createTestTemplate("swims.tmpl", `
@@ -392,7 +413,7 @@ func TestSwimsMore(t *testing.T) {
 			`)
 
 			rr := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/swims/more?offset="+tt.offset, nil)
+			r := httptest.NewRequest(http.MethodGet, tt.requestURL, nil)
 
 			if tt.htmxRequest {
 				r.Header.Set("HX-Request", "true")
@@ -409,6 +430,49 @@ func TestSwimsMore(t *testing.T) {
 	}
 }
 
+func TestParseSwimSort(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantSort   string
+		wantDirect string
+	}{
+		{
+			name:       "defaults when not provided",
+			url:        "/swims",
+			wantSort:   models.SwimSortDate,
+			wantDirect: models.SortDirectionDesc,
+		},
+		{
+			name:       "custom values",
+			url:        "/swims?sort=distance&direction=asc",
+			wantSort:   models.SwimSortDistance,
+			wantDirect: models.SortDirectionAsc,
+		},
+		{
+			name:       "invalid values fallback",
+			url:        "/swims?sort=unknown&direction=sideways",
+			wantSort:   models.SwimSortDate,
+			wantDirect: models.SortDirectionDesc,
+		},
+		{
+			name:       "upper case parameters are normalized",
+			url:        "/swims?sort=ASSESSMENT&direction=ASC",
+			wantSort:   models.SwimSortAssessment,
+			wantDirect: models.SortDirectionAsc,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			gotSort, gotDirection := parseSwimSort(req)
+			assert.Equal(t, tt.wantSort, gotSort)
+			assert.Equal(t, tt.wantDirect, gotDirection)
+		})
+	}
+}
+
 func TestStoreSwim(t *testing.T) {
 	tests := []struct {
 		name             string
@@ -420,9 +484,9 @@ func TestStoreSwim(t *testing.T) {
 		{
 			name: "successful swim creation",
 			formData: url.Values{
-				"date":        []string{"2024-01-15"},
-				"distance_m":  []string{"1500"},
-				"assessment":  []string{"2"},
+				"date":       []string{"2024-01-15"},
+				"distance_m": []string{"1500"},
+				"assessment": []string{"2"},
 			},
 			setupMock: func(m *testutils.MockSwimModel) {
 				m.InsertFunc = func(date time.Time, distanceM int, assessment int, userId int) error {
@@ -435,9 +499,9 @@ func TestStoreSwim(t *testing.T) {
 		{
 			name: "invalid date format",
 			formData: url.Values{
-				"date":        []string{"invalid-date"},
-				"distance_m":  []string{"1500"},
-				"assessment":  []string{"2"},
+				"date":       []string{"invalid-date"},
+				"distance_m": []string{"1500"},
+				"assessment": []string{"2"},
 			},
 			setupMock:      func(m *testutils.MockSwimModel) {},
 			expectedStatus: http.StatusBadRequest,
@@ -445,9 +509,9 @@ func TestStoreSwim(t *testing.T) {
 		{
 			name: "invalid distance",
 			formData: url.Values{
-				"date":        []string{"2024-01-15"},
-				"distance_m":  []string{"not-a-number"},
-				"assessment":  []string{"2"},
+				"date":       []string{"2024-01-15"},
+				"distance_m": []string{"not-a-number"},
+				"assessment": []string{"2"},
 			},
 			setupMock:      func(m *testutils.MockSwimModel) {},
 			expectedStatus: http.StatusBadRequest,
@@ -455,9 +519,9 @@ func TestStoreSwim(t *testing.T) {
 		{
 			name: "invalid assessment",
 			formData: url.Values{
-				"date":        []string{"2024-01-15"},
-				"distance_m":  []string{"1500"},
-				"assessment":  []string{"invalid"},
+				"date":       []string{"2024-01-15"},
+				"distance_m": []string{"1500"},
+				"assessment": []string{"invalid"},
 			},
 			setupMock:      func(m *testutils.MockSwimModel) {},
 			expectedStatus: http.StatusBadRequest,
@@ -465,9 +529,9 @@ func TestStoreSwim(t *testing.T) {
 		{
 			name: "database error on insert",
 			formData: url.Values{
-				"date":        []string{"2024-01-15"},
-				"distance_m":  []string{"1500"},
-				"assessment":  []string{"2"},
+				"date":       []string{"2024-01-15"},
+				"distance_m": []string{"1500"},
+				"assessment": []string{"2"},
 			},
 			setupMock: func(m *testutils.MockSwimModel) {
 				m.InsertFunc = func(date time.Time, distanceM int, assessment int, userId int) error {

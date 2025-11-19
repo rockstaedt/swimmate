@@ -5,13 +5,28 @@ import (
 	"github.com/rockstaedt/swimmate/internal/models"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
 const (
-	itemsPerPage = 20
+	itemsPerPage  = 20
 	swimsTemplate = "swims.tmpl"
 )
+
+type swimsPageData struct {
+	Swims     []*models.Swim
+	Offset    int
+	Sort      string
+	Direction string
+	LoadMore  *loadMoreData
+}
+
+type loadMoreData struct {
+	NextOffset int
+	Sort       string
+	Direction  string
+}
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
@@ -98,25 +113,29 @@ func (app *application) createSwim(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) swimsList(w http.ResponseWriter, r *http.Request) {
 	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
-	
-	swims, err := app.swims.GetPaginated(userId, itemsPerPage, 0)
+	sort, direction := parseSwimSort(r)
+
+	swims, err := app.swims.GetPaginated(userId, itemsPerPage, 0, sort, direction)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
 	}
 
-	data := struct {
-		Swims  []*models.Swim
-		Offset int
-		Limit  int
-	}{swims, 0, itemsPerPage}
+	data := swimsPageData{
+		Swims:     swims,
+		Offset:    0,
+		Sort:      sort,
+		Direction: direction,
+		LoadMore:  newLoadMoreData(len(swims) == itemsPerPage, itemsPerPage, sort, direction),
+	}
 
 	app.render(w, r, http.StatusOK, swimsTemplate, app.newTemplateData(r, data))
 }
 
 func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
 	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
-	
+	sort, direction := parseSwimSort(r)
+
 	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
 	if err != nil {
 		offset = 0
@@ -125,7 +144,7 @@ func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
 	// Check if this is an HTMX request
 	if r.Header.Get("HX-Request") == "true" {
 		// Return partial HTML for HTMX
-		swims, err := app.swims.GetPaginated(userId, itemsPerPage, offset)
+		swims, err := app.swims.GetPaginated(userId, itemsPerPage, offset, sort, direction)
 		if err != nil {
 			app.serverError(w, r, err)
 			return
@@ -136,26 +155,27 @@ func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Add the new button row or end
-		if len(swims) == itemsPerPage {
-			nextOffset := offset + itemsPerPage
-			app.renderPartial(w, r, swimsTemplate, "load-more-button", nextOffset)
+		if loadMore := newLoadMoreData(len(swims) == itemsPerPage, offset+itemsPerPage, sort, direction); loadMore != nil {
+			app.renderPartial(w, r, swimsTemplate, "load-more-button", loadMore)
 		}
 		return
 	}
 
 	// For direct browser requests, show full page with all swims up to offset + 20
 	limit := offset + itemsPerPage
-	swims, err := app.swims.GetPaginated(userId, limit, 0)
+	swims, err := app.swims.GetPaginated(userId, limit, 0, sort, direction)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
 	}
 
-	data := struct {
-		Swims  []*models.Swim
-		Offset int
-		Limit  int
-	}{swims, offset, itemsPerPage}
+	data := swimsPageData{
+		Swims:     swims,
+		Offset:    offset,
+		Sort:      sort,
+		Direction: direction,
+		LoadMore:  newLoadMoreData(len(swims) == limit, limit, sort, direction),
+	}
 
 	app.render(w, r, http.StatusOK, swimsTemplate, app.newTemplateData(r, data))
 }
@@ -199,4 +219,30 @@ func (app *application) storeSwim(w http.ResponseWriter, r *http.Request) {
 	app.sessionManager.Put(r.Context(), "flashText", "Successfully created!")
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func parseSwimSort(r *http.Request) (string, string) {
+	sort := strings.ToLower(r.URL.Query().Get("sort"))
+	if sort != models.SwimSortDate && sort != models.SwimSortDistance && sort != models.SwimSortAssessment {
+		sort = models.SwimSortDate
+	}
+
+	direction := strings.ToLower(r.URL.Query().Get("direction"))
+	if direction != models.SortDirectionAsc && direction != models.SortDirectionDesc {
+		direction = models.SortDirectionDesc
+	}
+
+	return sort, direction
+}
+
+func newLoadMoreData(hasMore bool, nextOffset int, sort, direction string) *loadMoreData {
+	if !hasMore {
+		return nil
+	}
+
+	return &loadMoreData{
+		NextOffset: nextOffset,
+		Sort:       sort,
+		Direction:  direction,
+	}
 }

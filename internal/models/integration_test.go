@@ -237,12 +237,12 @@ func TestIntegrationSwimCRUD(t *testing.T) {
 
 	t.Run("pagination", func(t *testing.T) {
 		// Get first page
-		page1, err := swimModel.GetPaginated(userID, 2, 0)
+		page1, err := swimModel.GetPaginated(userID, 2, 0, SwimSortDate, SortDirectionDesc)
 		assert.NoError(t, err)
 		assert.LessOrEqual(t, len(page1), 2)
 
 		// Get second page
-		page2, err := swimModel.GetPaginated(userID, 2, 2)
+		page2, err := swimModel.GetPaginated(userID, 2, 2, SwimSortDate, SortDirectionDesc)
 		assert.NoError(t, err)
 
 		// Verify DESC ordering (most recent first)

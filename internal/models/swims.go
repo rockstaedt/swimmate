@@ -3,7 +3,17 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
+)
+
+const (
+	SwimSortDate       = "date"
+	SwimSortDistance   = "distance"
+	SwimSortAssessment = "assessment"
+
+	SortDirectionAsc  = "asc"
+	SortDirectionDesc = "desc"
 )
 
 type Swim struct {
@@ -37,7 +47,7 @@ type SwimFigures struct {
 type SwimModel interface {
 	Get() (*Swim, error)
 	GetAll(userId int) ([]*Swim, error)
-	GetPaginated(userId int, limit int, offset int) ([]*Swim, error)
+	GetPaginated(userId int, limit int, offset int, sort string, direction string) ([]*Swim, error)
 	Insert(date time.Time, distanceM int, assessment int, userId int) error
 	Summarize(userId int) *SwimSummary
 }
@@ -133,8 +143,15 @@ func (sw *swimModel) Summarize(userId int) *SwimSummary {
 	return summary
 }
 
-func (sw *swimModel) GetPaginated(userId int, limit int, offset int) ([]*Swim, error) {
-	stmt := `SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY date DESC LIMIT $2 OFFSET $3;`
+func (sw *swimModel) GetPaginated(userId int, limit int, offset int, sort string, direction string) ([]*Swim, error) {
+	sortColumn := sanitizeSortColumn(sort)
+	sortDirection := sanitizeSortDirection(direction)
+
+	stmt := fmt.Sprintf(
+		`SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3;`,
+		sortColumn,
+		sortDirection,
+	)
 
 	rows, err := sw.DB.Query(stmt, userId, limit, offset)
 	if err != nil {
@@ -220,4 +237,26 @@ func (s *SwimSummary) updateMonthMap(swim *Swim) {
 
 	yearMap.MonthMap[month] = monthMap
 
+}
+
+var sortColumnMap = map[string]string{
+	SwimSortDate:       "date",
+	SwimSortDistance:   "distance_m",
+	SwimSortAssessment: "assessment",
+}
+
+func sanitizeSortColumn(sort string) string {
+	if column, ok := sortColumnMap[sort]; ok {
+		return column
+	}
+	return sortColumnMap[SwimSortDate]
+}
+
+func sanitizeSortDirection(direction string) string {
+	switch direction {
+	case SortDirectionAsc:
+		return "ASC"
+	default:
+		return "DESC"
+	}
 }
