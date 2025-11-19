@@ -1,30 +1,118 @@
 {{define "title"}}Home{{end}}
 {{define "main"}}
     <div class="dashboard">
-        <div class="dashboard-entry">
-            <h3>Total Swims</h3>
-            <p>{{ .Data.TotalCount }}</p>
+        <div class="dashboard-summary">
+            <div class="summary-card primary">
+                <div class="card-icon">
+                    <i class="fas fa-swimming-pool"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Total Swims</h3>
+                    <p class="metric-value">{{ .Data.TotalCount }}</p>
+                </div>
+            </div>
+            <div class="summary-card primary">
+                <div class="card-icon">
+                    <i class="fas fa-route"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Total Distance</h3>
+                    <p class="metric-value">{{ .Data.TotalDistance | numberFormat }}<span class="unit">m</span></p>
+                </div>
+            </div>
         </div>
-        <div class="dashboard-entry">
-            <h3>Total Distance</h3>
-            <p>{{ .Data.TotalDistance | numberFormat }} m</p>
+
+        <div class="dashboard-chart">
+            <h3><i class="fas fa-chart-bar"></i> Activity Overview</h3>
+            <div class="chart-container">
+                <div class="chart-bar">
+                    <div class="bar-label">This Week</div>
+                    <div class="bar-wrapper">
+                        <div class="bar weekly"
+                             style="--value: {{ .Data.WeeklyCount }}; --max: {{ .Data.MaxActivityCount }}"></div>
+                        <span class="bar-value">{{ .Data.WeeklyCount }}</span>
+                    </div>
+                </div>
+                <div class="chart-bar">
+                    <div class="bar-label">This Month</div>
+                    <div class="bar-wrapper">
+                        <div class="bar monthly"
+                             style="--value: {{ .Data.MonthlyCount }}; --max: {{ .Data.MaxActivityCount }}"></div>
+                        <span class="bar-value">{{ .Data.MonthlyCount }}</span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="dashboard-entry">
-            <h3>Monthly Count</h3>
-            <p>{{ .Data.MonthlyCount}}</p>
+
+        {{$yearData := index .Data.YearMap .CurrentYear}}
+        {{if $yearData}}
+            <div class="dashboard-chart cumulative-chart">
+                <h3><i class="fas fa-chart-line"></i> Year Progress</h3>
+                <div class="cumulative-container">
+                    {{$currentMonth := .CurrentMonth}}
+                    {{$cumulative := 0}}
+                    {{$maxCumulative := 0}}
+                    {{range $month := seq $currentMonth}}
+                        {{$monthData := index $yearData.MonthMap $month}}
+                        {{if $monthData}}
+                            {{$cumulative = add $cumulative $monthData.DistanceM}}
+                            {{if gt $cumulative $maxCumulative}}
+                                {{$maxCumulative = $cumulative}}
+                            {{end}}
+                        {{end}}
+                    {{end}}
+
+                    {{$cumulative = 0}}
+                    {{range $month := seq $currentMonth}}
+                        {{$monthData := index $yearData.MonthMap $month}}
+                        {{if $monthData}}
+                            {{$cumulative = add $cumulative $monthData.DistanceM}}
+                        {{end}}
+                        <div class="cumulative-bar">
+                            <div class="month-label">{{monthAbbr $month}}</div>
+                            <div class="bar-area">
+                                {{if gt $maxCumulative 0}}
+                                    <div class="bar cumulative"
+                                         style="--value: {{$cumulative}}; --max: {{$maxCumulative}}"
+                                         title="{{$cumulative | numberFormat}}m">
+                                    </div>
+                                {{else}}
+                                    <div class="bar cumulative" style="--value: 0; --max: 1"></div>
+                                {{end}}
+                            </div>
+                            <span class="cumulative-value">{{if gt $cumulative 999}}{{printf "%dk" (div $cumulative 1000)}}{{else if gt $cumulative 0}}{{$cumulative}}{{end}}</span>
+                        </div>
+                    {{end}}
+                </div>
+            </div>
+        {{end}}
+
+        <div class="dashboard-details">
+            <div class="detail-card">
+                <i class="fas fa-calendar-week"></i>
+                <div class="detail-content">
+                    <h4>This Week</h4>
+                    <p>{{ .Data.WeeklyCount }} swims</p>
+                    <p>{{ .Data.WeeklyDistance | numberFormat }}m distance</p>
+                </div>
+            </div>
+            <div class="detail-card">
+                <i class="fas fa-calendar-alt"></i>
+                <div class="detail-content">
+                    <h4>This Month</h4>
+                    <p>{{ .Data.MonthlyCount }} swims</p>
+                    <p>{{ .Data.MonthlyDistance | numberFormat }}m distance</p>
+                </div>
+            </div>
         </div>
-        <div class="dashboard-entry">
-            <h3>Monthly Distance</h3>
-            <p>{{ .Data.MonthlyDistance | numberFormat }} m</p>
+
+        <div class="dashboard-actions">
+            <button hx-get="/swim" class="primary-action">
+                <i class="fas fa-plus"></i> Add New Swim
+            </button>
+            <button hx-get="/swims" class="secondary-action">
+                <i class="fas fa-list"></i> View All Swims
+            </button>
         </div>
-        <div class="dashboard-entry">
-            <h3>Weekly Count</h3>
-            <p>{{ .Data.WeeklyCount }}</p>
-        </div>
-        <div class="dashboard-entry">
-            <h3>Weekly Distance</h3>
-            <p>{{ .Data.WeeklyDistance | numberFormat }} m</p>
-        </div>
-       <button hx-get="/swim">Add a swim</button>
     </div>
 {{end}}

@@ -16,6 +16,8 @@ type templateData struct {
 	Flash           *Flash
 	IsAuthenticated bool
 	CurrentDate     string
+	CurrentYear     int
+	CurrentMonth    int
 }
 
 type Flash struct {
@@ -34,12 +36,15 @@ func (app *application) newTemplateData(r *http.Request, data interface{}) templ
 		app.sessionManager.PopString(r.Context(), "flashType"),
 	)
 
+	now := time.Now()
 	return templateData{
 		Version:         versionTxt,
 		Data:            data,
 		Flash:           flash,
 		IsAuthenticated: app.isAuthenticated(r),
-		CurrentDate:     time.Now().Format("2006-01-02"),
+		CurrentDate:     now.Format("2006-01-02"),
+		CurrentYear:     now.Year(),
+		CurrentMonth:    int(now.Month()),
 	}
 }
 
@@ -63,9 +68,13 @@ var functions = template.FuncMap{
 	"numberFormat": numberFormat,
 	"sub":          sub,
 	"add":          add,
+	"div":          div,
 	"seq":          seq,
 	"min":          min,
 	"emptyStars":   emptyStars,
+	"atoi":         atoi,
+	"slice":        slice,
+	"monthAbbr":    monthAbbr,
 }
 
 func numberFormat(n int) string {
@@ -91,6 +100,13 @@ func add(a, b int) int {
 	return a + b
 }
 
+func div(a, b int) int {
+	if b == 0 {
+		return 0
+	}
+	return a / b
+}
+
 func seq(n int) []int {
 	result := make([]int, n)
 	for i := 0; i < n; i++ {
@@ -109,6 +125,35 @@ func min(a, b int) int {
 func emptyStars(assessment int) int {
 	maxStars := 2
 	return maxStars - min(assessment, maxStars)
+}
+
+func atoi(s string) int {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		return 0
+	}
+	return i
+}
+
+func slice(s string, start, end int) string {
+	if start < 0 || start > len(s) {
+		return ""
+	}
+	if end < 0 || end > len(s) {
+		end = len(s)
+	}
+	if start >= end {
+		return ""
+	}
+	return s[start:end]
+}
+
+func monthAbbr(month int) string {
+	abbrs := []string{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+	if month < 1 || month > 12 {
+		return ""
+	}
+	return abbrs[month-1]
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {

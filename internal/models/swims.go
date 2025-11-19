@@ -14,13 +14,14 @@ type Swim struct {
 }
 
 type SwimSummary struct {
-	TotalDistance   int
-	TotalCount      int
-	MonthlyDistance int
-	MonthlyCount    int
-	WeeklyDistance  int
-	WeeklyCount     int
-	YearMap         map[int]YearMap
+	TotalDistance    int
+	TotalCount       int
+	MonthlyDistance  int
+	MonthlyCount     int
+	WeeklyDistance   int
+	WeeklyCount      int
+	MaxActivityCount int
+	YearMap          map[int]YearMap
 }
 
 type YearMap struct {
@@ -76,7 +77,12 @@ func (sw *swimModel) GetAll(userId int) ([]*Swim, error) {
 		return nil, err
 	}
 
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			// Ignore Close error to avoid overriding return error
+			_ = err
+		}
+	}()
 
 	var swims []*Swim
 	for rows.Next() {
@@ -115,6 +121,15 @@ func (sw *swimModel) Summarize(userId int) *SwimSummary {
 	summary.MonthlyDistance = summary.YearMap[time.Now().Year()].MonthMap[time.Now().Month()].DistanceM
 	summary.MonthlyCount = summary.YearMap[time.Now().Year()].MonthMap[time.Now().Month()].Count
 
+	// Calculate max activity count for chart scaling
+	summary.MaxActivityCount = summary.MonthlyCount
+	if summary.WeeklyCount > summary.MaxActivityCount {
+		summary.MaxActivityCount = summary.WeeklyCount
+	}
+	if summary.MaxActivityCount == 0 {
+		summary.MaxActivityCount = 10
+	}
+
 	return summary
 }
 
@@ -126,7 +141,12 @@ func (sw *swimModel) GetPaginated(userId int, limit int, offset int) ([]*Swim, e
 		return nil, err
 	}
 
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			// Ignore Close error to avoid overriding return error
+			_ = err
+		}
+	}()
 
 	var swims []*Swim
 	for rows.Next() {
