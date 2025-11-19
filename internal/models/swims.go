@@ -62,13 +62,13 @@ func NewSwimModel(db *sql.DB) SwimModel {
 }
 
 func (sw *swimModel) Get() (*Swim, error) {
-	stmt := `SELECT date, distance_m, assessment FROM swims ORDER BY date ASC LIMIT 1;`
+	stmt := `SELECT id, date, distance_m, assessment FROM swims ORDER BY date ASC LIMIT 1;`
 
 	row := sw.DB.QueryRow(stmt)
 
 	var s Swim
 
-	err := row.Scan(&s.Date, &s.DistanceM, &s.Assessment)
+	err := row.Scan(&s.Id, &s.Date, &s.DistanceM, &s.Assessment)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return &Swim{}, ErrNoRecord
@@ -81,7 +81,7 @@ func (sw *swimModel) Get() (*Swim, error) {
 }
 
 func (sw *swimModel) GetAll(userId int) ([]*Swim, error) {
-	stmt := `SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY date ASC;`
+	stmt := `SELECT id, date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY date ASC;`
 
 	rows, err := sw.DB.Query(stmt, userId)
 	if err != nil {
@@ -98,7 +98,7 @@ func (sw *swimModel) GetAll(userId int) ([]*Swim, error) {
 	var swims []*Swim
 	for rows.Next() {
 		var s Swim
-		errScan := rows.Scan(&s.Date, &s.DistanceM, &s.Assessment)
+		errScan := rows.Scan(&s.Id, &s.Date, &s.DistanceM, &s.Assessment)
 		if errScan != nil {
 			return nil, errScan
 		}
@@ -149,7 +149,7 @@ func (sw *swimModel) GetPaginated(userId int, limit int, offset int, sort string
 	sortDirection := sanitizeSortDirection(direction)
 
 	stmt := fmt.Sprintf(
-		`SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3;`,
+		`SELECT id, date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3;`,
 		sortColumn,
 		sortDirection,
 	)
@@ -169,7 +169,7 @@ func (sw *swimModel) GetPaginated(userId int, limit int, offset int, sort string
 	var swims []*Swim
 	for rows.Next() {
 		var s Swim
-		errScan := rows.Scan(&s.Date, &s.DistanceM, &s.Assessment)
+		errScan := rows.Scan(&s.Id, &s.Date, &s.DistanceM, &s.Assessment)
 		if errScan != nil {
 			return nil, errScan
 		}
