@@ -76,7 +76,12 @@ func (sw *swimModel) GetAll(userId int) ([]*Swim, error) {
 		return nil, err
 	}
 
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			// Log error but don't override return error
+			_ = err
+		}
+	}()
 
 	var swims []*Swim
 	for rows.Next() {
@@ -126,7 +131,12 @@ func (sw *swimModel) GetPaginated(userId int, limit int, offset int) ([]*Swim, e
 		return nil, err
 	}
 
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			// Log error but don't override return error
+			_ = err
+		}
+	}()
 
 	var swims []*Swim
 	for rows.Next() {

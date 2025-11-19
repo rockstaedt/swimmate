@@ -47,7 +47,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error opening database: %v", err)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("Error closing database: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -102,24 +106,24 @@ func createUser(db *sql.DB, username, password, firstName, lastName, email strin
 }
 
 func createSwims(db *sql.DB, userID, numSwims, daysBack int) error {
-	// Seed random number generator
-	rand.Seed(time.Now().UnixNano())
+	// Create a local random number generator
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	stmt := `INSERT INTO swims (date, distance_m, assessment, user_id) VALUES ($1, $2, $3, $4)`
 
 	// Generate random swims
 	for i := 0; i < numSwims; i++ {
 		// Random date within the specified range
-		daysAgo := rand.Intn(daysBack)
+		daysAgo := rng.Intn(daysBack)
 		swimDate := time.Now().AddDate(0, 0, -daysAgo)
 
 		// Random distance (realistic swimming distances in meters)
 		// Typical distances: 500m, 1000m, 1500m, 2000m, 2500m, 3000m, etc.
 		distanceOptions := []int{500, 750, 1000, 1200, 1500, 1800, 2000, 2500, 3000, 3500, 4000}
-		distance := distanceOptions[rand.Intn(len(distanceOptions))]
+		distance := distanceOptions[rng.Intn(len(distanceOptions))]
 
 		// Random assessment (0-2 stars)
-		assessment := rand.Intn(3)
+		assessment := rng.Intn(3)
 
 		_, err := db.Exec(stmt, swimDate, distance, assessment, userID)
 		if err != nil {

@@ -30,7 +30,7 @@ func TestSecureHeaders(t *testing.T) {
 			// Create a test handler that will be wrapped
 			nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte("OK"))
+				_, _ = w.Write([]byte("OK"))
 			})
 
 			// Wrap with secureHeaders middleware
@@ -124,7 +124,7 @@ func TestRecoverPanic(t *testing.T) {
 			name: "no panic - normal execution",
 			handlerFunc: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte("OK"))
+				_, _ = w.Write([]byte("OK"))
 			},
 			expectedStatus: http.StatusOK,
 			shouldPanic:    false,
@@ -240,7 +240,7 @@ func TestRequireAuthentication(t *testing.T) {
 			nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				nextHandlerCalled = true
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte("Protected content"))
+				_, _ = w.Write([]byte("Protected content"))
 			})
 
 			handler := app.requireAuthentication(nextHandler)
@@ -286,7 +286,7 @@ func TestMiddlewareChaining(t *testing.T) {
 
 	finalHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Final handler"))
+		_, _ = w.Write([]byte("Final handler"))
 	})
 
 	// Chain all middleware together

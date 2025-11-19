@@ -80,7 +80,9 @@ func TestSwimModelInsert(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			db, mock, err := sqlmock.New()
 			assert.NoError(t, err)
-			defer db.Close()
+			defer func() {
+				_ = db.Close()
+			}()
 
 			tt.setupMock(mock)
 
@@ -149,7 +151,9 @@ func TestSwimModelGet(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			db, mock, err := sqlmock.New()
 			assert.NoError(t, err)
-			defer db.Close()
+			defer func() {
+				_ = db.Close()
+			}()
 
 			tt.setupMock(mock)
 
@@ -263,7 +267,9 @@ func TestSwimModelGetAll(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			db, mock, err := sqlmock.New()
 			assert.NoError(t, err)
-			defer db.Close()
+			defer func() {
+				_ = db.Close()
+			}()
 
 			tt.setupMock(mock)
 
@@ -420,7 +426,9 @@ func TestSwimModelGetPaginated(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			db, mock, err := sqlmock.New()
 			assert.NoError(t, err)
-			defer db.Close()
+			defer func() {
+				_ = db.Close()
+			}()
 
 			tt.setupMock(mock)
 
@@ -682,7 +690,9 @@ func TestSwimModelSummarize(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			db, mock, err := sqlmock.New()
 			assert.NoError(t, err)
-			defer db.Close()
+			defer func() {
+				_ = db.Close()
+			}()
 
 			tt.setupMock(mock)
 

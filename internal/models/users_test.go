@@ -177,7 +177,9 @@ func TestUserModelAuthenticate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			db, mock, err := sqlmock.New()
 			assert.NoError(t, err)
-			defer db.Close()
+			defer func() {
+				_ = db.Close()
+			}()
 
 			tt.setupMock(mock)
 
@@ -209,7 +211,9 @@ func TestUserModelAuthenticateLastLoginUpdate(t *testing.T) {
 
 	db, mock, err := sqlmock.New()
 	assert.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	// Capture the timestamp passed to the UPDATE query
 	var capturedTime time.Time
