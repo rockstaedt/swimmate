@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -253,10 +254,8 @@ func sanitizeSortColumn(sort string) string {
 }
 
 func sanitizeSortDirection(direction string) string {
-	switch direction {
-	case SortDirectionAsc:
+	if strings.EqualFold(direction, SortDirectionAsc) {
 		return "ASC"
-	default:
-		return "DESC"
 	}
+	return "DESC"
 }

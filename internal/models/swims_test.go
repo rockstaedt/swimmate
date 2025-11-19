@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -497,6 +498,25 @@ func TestSwimModelGetPaginated(t *testing.T) {
 					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
 					sortColumnMap[SwimSortDate],
 					"DESC",
+				))
+				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"})
+				mock.ExpectQuery(query).
+					WithArgs(1, 5, 0).
+					WillReturnRows(rows)
+			},
+		},
+		{
+			name:      "uppercase direction still treated as ascending",
+			userId:    1,
+			limit:     5,
+			offset:    0,
+			sort:      SwimSortDate,
+			direction: strings.ToUpper(SortDirectionAsc),
+			setupMock: func(mock sqlmock.Sqlmock) {
+				query := regexp.QuoteMeta(fmt.Sprintf(
+					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					sortColumnMap[SwimSortDate],
+					"ASC",
 				))
 				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"})
 				mock.ExpectQuery(query).
