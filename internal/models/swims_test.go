@@ -106,6 +106,89 @@ func TestSwimModelInsert(t *testing.T) {
 	}
 }
 
+func TestSwimModelUpdate(t *testing.T) {
+	tests := []struct {
+		name        string
+		userId      int
+		swimId      int
+		date        time.Time
+		distanceM   int
+		assessment  int
+		setupMock   func(mock sqlmock.Sqlmock)
+		expectError bool
+		errorType   error
+	}{
+		{
+			name:       "successful update",
+			userId:     1,
+			swimId:     10,
+			date:       time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC),
+			distanceM:  2000,
+			assessment: 2,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("UPDATE swims SET date = \\$1, distance_m = \\$2, assessment = \\$3 WHERE id = \\$4 AND user_id = \\$5").
+					WithArgs(time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC), 2000, 2, 10, 1).
+					WillReturnResult(sqlmock.NewResult(0, 1))
+			},
+		},
+		{
+			name:       "no rows updated",
+			userId:     1,
+			swimId:     999,
+			date:       time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC),
+			distanceM:  1000,
+			assessment: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("UPDATE swims SET date = \\$1, distance_m = \\$2, assessment = \\$3 WHERE id = \\$4 AND user_id = \\$5").
+					WithArgs(time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC), 1000, 1, 999, 1).
+					WillReturnResult(sqlmock.NewResult(0, 0))
+			},
+			expectError: true,
+			errorType:   ErrNoRecord,
+		},
+		{
+			name:       "database error",
+			userId:     1,
+			swimId:     5,
+			date:       time.Date(2024, 4, 1, 0, 0, 0, 0, time.UTC),
+			distanceM:  1500,
+			assessment: 0,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("UPDATE swims SET date = \\$1, distance_m = \\$2, assessment = \\$3 WHERE id = \\$4 AND user_id = \\$5").
+					WithArgs(time.Date(2024, 4, 1, 0, 0, 0, 0, time.UTC), 1500, 0, 5, 1).
+					WillReturnError(errors.New("update failed"))
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db, mock, err := sqlmock.New()
+			assert.NoError(t, err)
+			defer func() {
+				_ = db.Close()
+			}()
+
+			tt.setupMock(mock)
+
+			model := NewSwimModel(db)
+			err = model.Update(tt.swimId, tt.userId, tt.date, tt.distanceM, tt.assessment)
+
+			if tt.expectError {
+				assert.Error(t, err)
+				if tt.errorType != nil {
+					assert.ErrorIs(t, err, tt.errorType)
+				}
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
 func TestSwimModelGet(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -174,6 +257,90 @@ func TestSwimModelGet(t *testing.T) {
 				assert.Equal(t, tt.expectedSwim.Date, swim.Date)
 				assert.Equal(t, tt.expectedSwim.DistanceM, swim.DistanceM)
 				assert.Equal(t, tt.expectedSwim.Assessment, swim.Assessment)
+			}
+
+			assert.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestSwimModelGetByID(t *testing.T) {
+	tests := []struct {
+		name         string
+		userId       int
+		swimId       int
+		setupMock    func(mock sqlmock.Sqlmock)
+		expectError  bool
+		expectedSwim *Swim
+		errorType    error
+	}{
+		{
+			name:   "successful fetch",
+			userId: 1,
+			swimId: 10,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"}).
+					AddRow(10, time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC), 1800, 1)
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(10, 1).
+					WillReturnRows(rows)
+			},
+			expectedSwim: &Swim{
+				Id:         10,
+				Date:       time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC),
+				DistanceM:  1800,
+				Assessment: 1,
+			},
+		},
+		{
+			name:   "not found",
+			userId: 1,
+			swimId: 999,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(999, 1).
+					WillReturnError(sql.ErrNoRows)
+			},
+			expectError:  true,
+			expectedSwim: &Swim{},
+			errorType:    ErrNoRecord,
+		},
+		{
+			name:   "database error",
+			userId: 1,
+			swimId: 5,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(5, 1).
+					WillReturnError(errors.New("query failed"))
+			},
+			expectError:  true,
+			expectedSwim: &Swim{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db, mock, err := sqlmock.New()
+			assert.NoError(t, err)
+			defer func() {
+				_ = db.Close()
+			}()
+
+			tt.setupMock(mock)
+
+			model := NewSwimModel(db)
+			swim, err := model.GetByID(tt.userId, tt.swimId)
+
+			if tt.expectError {
+				assert.Error(t, err)
+				if tt.errorType != nil {
+					assert.ErrorIs(t, err, tt.errorType)
+				}
+				assert.Equal(t, tt.expectedSwim, swim)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedSwim, swim)
 			}
 
 			assert.NoError(t, mock.ExpectationsWereMet())
