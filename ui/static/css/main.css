@@ -65,6 +65,12 @@ body {
         header {
             display: none;
         }
+
+        main {
+            margin-top: 0;
+            gap: 0;
+        }
+
     }
 }
 
@@ -162,6 +168,13 @@ main {
     max-width: 120rem;
     margin: 0 auto;
     padding: 0;
+    margin-top: 2.4rem;
+    gap: 2.4rem;
+
+    @media (min-width: 768px) {
+        margin-top: 3rem;
+        gap: 3rem;
+    }
 
     > div {
         display: grid;
@@ -172,12 +185,21 @@ main {
         align-self: center;
     }
 
-    > div:first-child:not(.flash-box) {
-        margin-top: 3rem;
+    .flash-box {
+        position: fixed;
+        top: calc(env(safe-area-inset-top) + 1.5rem);
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(65vw, 50rem);
+        z-index: 2000;
+        display: flex;
+        justify-content: center;
+        pointer-events: none;
+    }
 
-        @media (min-width: 768px) {
-            margin-top: 4rem;
-        }
+    .flash-box .flash {
+        width: 100%;
+        pointer-events: auto;
     }
 
     p, label, td, th, .flash {
@@ -186,31 +208,57 @@ main {
 
     .flash {
         display: flex;
-        flex-direction: row;
+        align-items: center;
         grid-column: span 12;
+        gap: 1.4rem;
         opacity: 1;
         margin: 2rem 0;
-        overflow: hidden;
-        color: white;
-        padding: 1.5rem;
-        border-radius: var(--border-radius);
+        padding: 1.6rem 2rem;
+        border-radius: var(--border-radius-lg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: var(--shadow);
+        background: var(--color-background-200);
+        color: var(--color-text);
         transition: opacity 3s linear;
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+            content: "";
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            font-weight: 600;
+        }
 
         > span {
-            text-align: center;
-            max-height: 100px;
-            width: 100%;
-            overflow: hidden;
-            display: inline-block;
-            transition: max-height 2s linear;
+            flex: 1;
+            font-size: 1.8rem;
+            letter-spacing: 0.05em;
         }
 
         &.flash-success {
-            background-color: var(--color-success);
+            border-color: rgba(16, 185, 129, 0.5);
+
+            &::before {
+                content: "✓";
+                background: rgba(16, 185, 129, 0.15);
+                color: var(--color-success-light);
+            }
         }
 
         &.flash-error {
-            background-color: var(--color-error);
+            border-color: rgba(239, 68, 68, 0.4);
+
+            &::before {
+                content: "!";
+                background: rgba(239, 68, 68, 0.15);
+                color: var(--color-error);
+            }
         }
     }
 }
