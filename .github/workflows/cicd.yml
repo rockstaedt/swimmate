@@ -60,6 +60,7 @@ jobs:
     name: Versioning
     runs-on: ubuntu-latest
     needs: [ test, build, lint ]
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
         with:
