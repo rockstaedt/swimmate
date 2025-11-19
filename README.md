@@ -5,4 +5,4 @@
 
 **Attention: Still under development!**
 
-This will be a web application to track my swim trainings.
+This will be a web application to track swim trainings. 
