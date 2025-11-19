@@ -971,19 +971,6 @@ button {
                 justify-content: space-between;
             }
 
-            .helper-text {
-                margin: 0;
-                font-size: 1.4rem;
-                color: var(--color-text-muted);
-
-                span {
-                    color: var(--color-blue-accent);
-                    font-weight: 600;
-                    letter-spacing: 0.05em;
-                    margin-right: 0.3rem;
-                }
-            }
-
             button {
                 width: 100%;
                 display: flex;
