@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"html/template"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/rockstaedt/swimmate/internal/models"
 	"github.com/rockstaedt/swimmate/internal/testutils"
 	"github.com/stretchr/testify/assert"
@@ -561,6 +563,161 @@ func TestStoreSwim(t *testing.T) {
 
 			assert.Equal(t, tt.expectedStatus, rr.Code)
 
+			if tt.expectedLocation != "" {
+				assert.Equal(t, tt.expectedLocation, rr.Header().Get("Location"))
+			}
+		})
+	}
+}
+
+func TestEditSwim(t *testing.T) {
+	tests := []struct {
+		name           string
+		swimID         string
+		setupMock      func(*testutils.MockSwimModel)
+		expectedStatus int
+	}{
+		{
+			name:   "renders edit page",
+			swimID: "5",
+			setupMock: func(m *testutils.MockSwimModel) {
+				m.GetByIDFunc = func(userId int, swimId int) (*models.Swim, error) {
+					assert.Equal(t, 1, userId)
+					assert.Equal(t, 5, swimId)
+					return &models.Swim{Id: 5}, nil
+				}
+			},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:   "swim not found",
+			swimID: "2",
+			setupMock: func(m *testutils.MockSwimModel) {
+				m.GetByIDFunc = func(userId int, swimId int) (*models.Swim, error) {
+					return &models.Swim{}, models.ErrNoRecord
+				}
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:           "invalid swim id",
+			swimID:         "abc",
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApplication()
+			app.templateCache["swim-edit.tmpl"] = createTestTemplate("base", `{{define "base"}}Edit{{end}}`)
+
+			mockSwims := &testutils.MockSwimModel{}
+			tt.setupMock(mockSwims)
+			app.swims = mockSwims
+
+			rr := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/swims/"+tt.swimID+"/edit", nil)
+
+			ctx, _ := app.sessionManager.Load(r.Context(), "")
+			app.sessionManager.Put(ctx, "authenticatedUserID", 1)
+			ctx = context.WithValue(ctx, httprouter.ParamsKey, httprouter.Params{{Key: "id", Value: tt.swimID}})
+			r = r.WithContext(ctx)
+
+			app.editSwim(rr, r)
+
+			assert.Equal(t, tt.expectedStatus, rr.Code)
+		})
+	}
+}
+
+func TestUpdateSwim(t *testing.T) {
+	validForm := url.Values{
+		"date":       []string{"2024-02-01"},
+		"distance_m": []string{"2000"},
+		"assessment": []string{"2"},
+	}
+
+	tests := []struct {
+		name             string
+		swimID           string
+		form             url.Values
+		setupMock        func(*testutils.MockSwimModel)
+		expectedStatus   int
+		expectedLocation string
+	}{
+		{
+			name:   "successful update",
+			swimID: "5",
+			form:   validForm,
+			setupMock: func(m *testutils.MockSwimModel) {
+				m.UpdateFunc = func(id int, userId int, date time.Time, distanceM int, assessment int) error {
+					assert.Equal(t, 5, id)
+					assert.Equal(t, 1, userId)
+					assert.Equal(t, 2000, distanceM)
+					assert.Equal(t, 2, assessment)
+					return nil
+				}
+			},
+			expectedStatus:   http.StatusSeeOther,
+			expectedLocation: "/swims",
+		},
+		{
+			name:   "swim not found on update",
+			swimID: "10",
+			form:   validForm,
+			setupMock: func(m *testutils.MockSwimModel) {
+				m.UpdateFunc = func(id int, userId int, date time.Time, distanceM int, assessment int) error {
+					return models.ErrNoRecord
+				}
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:   "invalid form data",
+			swimID: "3",
+			form: url.Values{
+				"date":       []string{"invalid-date"},
+				"distance_m": []string{"2000"},
+				"assessment": []string{"2"},
+			},
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:   "update error",
+			swimID: "6",
+			form:   validForm,
+			setupMock: func(m *testutils.MockSwimModel) {
+				m.UpdateFunc = func(id int, userId int, date time.Time, distanceM int, assessment int) error {
+					return errors.New("db error")
+				}
+			},
+			expectedStatus: http.StatusInternalServerError,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApplication()
+
+			mockSwims := &testutils.MockSwimModel{}
+			tt.setupMock(mockSwims)
+			app.swims = mockSwims
+
+			rr := httptest.NewRecorder()
+			form := tt.form.Encode()
+			r := httptest.NewRequest(http.MethodPost, "/swims/"+tt.swimID, strings.NewReader(form))
+			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+			ctx, _ := app.sessionManager.Load(r.Context(), "")
+			app.sessionManager.Put(ctx, "authenticatedUserID", 1)
+			ctx = context.WithValue(ctx, httprouter.ParamsKey, httprouter.Params{{Key: "id", Value: tt.swimID}})
+			r = r.WithContext(ctx)
+
+			app.updateSwim(rr, r)
+
+			assert.Equal(t, tt.expectedStatus, rr.Code)
 			if tt.expectedLocation != "" {
 				assert.Equal(t, tt.expectedLocation, rr.Header().Get("Location"))
 			}

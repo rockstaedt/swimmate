@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"github.com/julienschmidt/httprouter"
 	"github.com/rockstaedt/swimmate/internal/models"
 	"net/http"
 	"strconv"
@@ -109,6 +110,28 @@ func (app *application) about(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) createSwim(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "swim-create.tmpl", app.newTemplateData(r, nil))
+}
+
+func (app *application) editSwim(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	swimID, err := strconv.Atoi(params.ByName("id"))
+	if err != nil || swimID <= 0 {
+		app.notFound(w)
+		return
+	}
+
+	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+	swim, err := app.swims.GetByID(userId, swimID)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			app.notFound(w)
+		} else {
+			app.serverError(w, r, err)
+		}
+		return
+	}
+
+	app.render(w, r, http.StatusOK, "swim-edit.tmpl", app.newTemplateData(r, swim))
 }
 
 func (app *application) swimsList(w http.ResponseWriter, r *http.Request) {
@@ -219,6 +242,58 @@ func (app *application) storeSwim(w http.ResponseWriter, r *http.Request) {
 	app.sessionManager.Put(r.Context(), "flashText", "Successfully created!")
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (app *application) updateSwim(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	swimID, err := strconv.Atoi(params.ByName("id"))
+	if err != nil || swimID <= 0 {
+		app.notFound(w)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		app.logger.Error(err.Error())
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	date, err := time.Parse("2006-01-02", r.PostForm.Get("date"))
+	if err != nil {
+		app.logger.Error(err.Error())
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	distanceM, err := strconv.Atoi(r.PostForm.Get("distance_m"))
+	if err != nil {
+		app.logger.Error(err.Error())
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	assessment, err := strconv.Atoi(r.PostForm.Get("assessment"))
+	if err != nil {
+		app.logger.Error(err.Error())
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+	err = app.swims.Update(swimID, userId, date, distanceM, assessment)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			app.notFound(w)
+		} else {
+			app.serverError(w, r, err)
+		}
+		return
+	}
+
+	app.sessionManager.Put(r.Context(), "flashText", "Successfully updated!")
+
+	http.Redirect(w, r, "/swims", http.StatusSeeOther)
 }
 
 func parseSwimSort(r *http.Request) (string, string) {

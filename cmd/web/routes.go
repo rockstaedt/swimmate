@@ -32,6 +32,8 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodGet, "/yearly-figures", protected.ThenFunc(app.yearlyFigures))
 	router.Handler(http.MethodGet, "/swim", protected.ThenFunc(app.createSwim))
 	router.Handler(http.MethodPost, "/swim", protected.ThenFunc(app.storeSwim))
+	router.Handler(http.MethodGet, "/swims/:id/edit", protected.ThenFunc(app.editSwim))
+	router.Handler(http.MethodPost, "/swims/:id", protected.ThenFunc(app.updateSwim))
 
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 
