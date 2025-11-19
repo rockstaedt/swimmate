@@ -446,3 +446,356 @@ func TestSwimModelGetPaginated(t *testing.T) {
 		})
 	}
 }
+
+func TestSwimModelSummarize(t *testing.T) {
+	tests := []struct {
+		name            string
+		userId          int
+		setupMock       func(mock sqlmock.Sqlmock)
+		expectedSummary *SwimSummary
+	}{
+		{
+			name:   "empty dataset",
+			userId: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"})
+				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+					WithArgs(1).
+					WillReturnRows(rows)
+			},
+			expectedSummary: &SwimSummary{
+				TotalDistance:   0,
+				TotalCount:      0,
+				MonthlyDistance: 0,
+				MonthlyCount:    0,
+				WeeklyDistance:  0,
+				WeeklyCount:     0,
+				YearMap:         make(map[int]YearMap),
+			},
+		},
+		{
+			name:   "single swim from past year",
+			userId: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
+					AddRow(time.Date(2020, 6, 15, 0, 0, 0, 0, time.UTC), 1500, 2)
+				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+					WithArgs(1).
+					WillReturnRows(rows)
+			},
+			expectedSummary: &SwimSummary{
+				TotalDistance:   1500,
+				TotalCount:      1,
+				MonthlyDistance: 0,
+				MonthlyCount:    0,
+				WeeklyDistance:  0,
+				WeeklyCount:     0,
+				YearMap: map[int]YearMap{
+					2020: {
+						SwimFigures: SwimFigures{Count: 1, DistanceM: 1500},
+						MonthMap: map[time.Month]SwimFigures{
+							time.January:   {Count: 0, DistanceM: 0},
+							time.February:  {Count: 0, DistanceM: 0},
+							time.March:     {Count: 0, DistanceM: 0},
+							time.April:     {Count: 0, DistanceM: 0},
+							time.May:       {Count: 0, DistanceM: 0},
+							time.June:      {Count: 1, DistanceM: 1500},
+							time.July:      {Count: 0, DistanceM: 0},
+							time.August:    {Count: 0, DistanceM: 0},
+							time.September: {Count: 0, DistanceM: 0},
+							time.October:   {Count: 0, DistanceM: 0},
+							time.November:  {Count: 0, DistanceM: 0},
+							time.December:  {Count: 0, DistanceM: 0},
+						},
+					},
+				},
+			},
+		},
+		{
+			name:   "multiple swims across different months in same year",
+			userId: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
+					AddRow(time.Date(2020, 1, 10, 0, 0, 0, 0, time.UTC), 1000, 1).
+					AddRow(time.Date(2020, 3, 15, 0, 0, 0, 0, time.UTC), 1500, 2).
+					AddRow(time.Date(2020, 3, 20, 0, 0, 0, 0, time.UTC), 2000, 2)
+				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+					WithArgs(1).
+					WillReturnRows(rows)
+			},
+			expectedSummary: &SwimSummary{
+				TotalDistance:   4500,
+				TotalCount:      3,
+				MonthlyDistance: 0,
+				MonthlyCount:    0,
+				WeeklyDistance:  0,
+				WeeklyCount:     0,
+				YearMap: map[int]YearMap{
+					2020: {
+						SwimFigures: SwimFigures{Count: 3, DistanceM: 4500},
+						MonthMap: map[time.Month]SwimFigures{
+							time.January:   {Count: 1, DistanceM: 1000},
+							time.February:  {Count: 0, DistanceM: 0},
+							time.March:     {Count: 2, DistanceM: 3500},
+							time.April:     {Count: 0, DistanceM: 0},
+							time.May:       {Count: 0, DistanceM: 0},
+							time.June:      {Count: 0, DistanceM: 0},
+							time.July:      {Count: 0, DistanceM: 0},
+							time.August:    {Count: 0, DistanceM: 0},
+							time.September: {Count: 0, DistanceM: 0},
+							time.October:   {Count: 0, DistanceM: 0},
+							time.November:  {Count: 0, DistanceM: 0},
+							time.December:  {Count: 0, DistanceM: 0},
+						},
+					},
+				},
+			},
+		},
+		{
+			name:   "multiple swims across different years",
+			userId: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
+					AddRow(time.Date(2019, 12, 25, 0, 0, 0, 0, time.UTC), 1000, 1).
+					AddRow(time.Date(2020, 1, 5, 0, 0, 0, 0, time.UTC), 1500, 2).
+					AddRow(time.Date(2021, 6, 15, 0, 0, 0, 0, time.UTC), 2000, 2)
+				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+					WithArgs(1).
+					WillReturnRows(rows)
+			},
+			expectedSummary: &SwimSummary{
+				TotalDistance:   4500,
+				TotalCount:      3,
+				MonthlyDistance: 0,
+				MonthlyCount:    0,
+				WeeklyDistance:  0,
+				WeeklyCount:     0,
+				YearMap: map[int]YearMap{
+					2019: {
+						SwimFigures: SwimFigures{Count: 1, DistanceM: 1000},
+						MonthMap: map[time.Month]SwimFigures{
+							time.January:   {Count: 0, DistanceM: 0},
+							time.February:  {Count: 0, DistanceM: 0},
+							time.March:     {Count: 0, DistanceM: 0},
+							time.April:     {Count: 0, DistanceM: 0},
+							time.May:       {Count: 0, DistanceM: 0},
+							time.June:      {Count: 0, DistanceM: 0},
+							time.July:      {Count: 0, DistanceM: 0},
+							time.August:    {Count: 0, DistanceM: 0},
+							time.September: {Count: 0, DistanceM: 0},
+							time.October:   {Count: 0, DistanceM: 0},
+							time.November:  {Count: 0, DistanceM: 0},
+							time.December:  {Count: 1, DistanceM: 1000},
+						},
+					},
+					2020: {
+						SwimFigures: SwimFigures{Count: 1, DistanceM: 1500},
+						MonthMap: map[time.Month]SwimFigures{
+							time.January:   {Count: 1, DistanceM: 1500},
+							time.February:  {Count: 0, DistanceM: 0},
+							time.March:     {Count: 0, DistanceM: 0},
+							time.April:     {Count: 0, DistanceM: 0},
+							time.May:       {Count: 0, DistanceM: 0},
+							time.June:      {Count: 0, DistanceM: 0},
+							time.July:      {Count: 0, DistanceM: 0},
+							time.August:    {Count: 0, DistanceM: 0},
+							time.September: {Count: 0, DistanceM: 0},
+							time.October:   {Count: 0, DistanceM: 0},
+							time.November:  {Count: 0, DistanceM: 0},
+							time.December:  {Count: 0, DistanceM: 0},
+						},
+					},
+					2021: {
+						SwimFigures: SwimFigures{Count: 1, DistanceM: 2000},
+						MonthMap: map[time.Month]SwimFigures{
+							time.January:   {Count: 0, DistanceM: 0},
+							time.February:  {Count: 0, DistanceM: 0},
+							time.March:     {Count: 0, DistanceM: 0},
+							time.April:     {Count: 0, DistanceM: 0},
+							time.May:       {Count: 0, DistanceM: 0},
+							time.June:      {Count: 1, DistanceM: 2000},
+							time.July:      {Count: 0, DistanceM: 0},
+							time.August:    {Count: 0, DistanceM: 0},
+							time.September: {Count: 0, DistanceM: 0},
+							time.October:   {Count: 0, DistanceM: 0},
+							time.November:  {Count: 0, DistanceM: 0},
+							time.December:  {Count: 0, DistanceM: 0},
+						},
+					},
+				},
+			},
+		},
+		{
+			name:   "current week calculation",
+			userId: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				now := time.Now()
+				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
+					AddRow(now, 1500, 2)
+				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+					WithArgs(1).
+					WillReturnRows(rows)
+			},
+			expectedSummary: &SwimSummary{
+				TotalDistance:   1500,
+				TotalCount:      1,
+				MonthlyDistance: 1500,
+				MonthlyCount:    1,
+				WeeklyDistance:  1500,
+				WeeklyCount:     1,
+				YearMap: map[int]YearMap{
+					time.Now().Year(): {
+						SwimFigures: SwimFigures{Count: 1, DistanceM: 1500},
+						MonthMap: func() map[time.Month]SwimFigures {
+							monthMap := make(map[time.Month]SwimFigures)
+							for i := 1; i <= 12; i++ {
+								monthMap[time.Month(i)] = SwimFigures{Count: 0, DistanceM: 0}
+							}
+							monthMap[time.Now().Month()] = SwimFigures{Count: 1, DistanceM: 1500}
+							return monthMap
+						}(),
+					},
+				},
+			},
+		},
+		{
+			name:   "database error returns empty summary",
+			userId: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+					WithArgs(1).
+					WillReturnError(errors.New("database error"))
+			},
+			expectedSummary: &SwimSummary{
+				TotalDistance:   0,
+				TotalCount:      0,
+				MonthlyDistance: 0,
+				MonthlyCount:    0,
+				WeeklyDistance:  0,
+				WeeklyCount:     0,
+				YearMap:         make(map[int]YearMap),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db, mock, err := sqlmock.New()
+			assert.NoError(t, err)
+			defer db.Close()
+
+			tt.setupMock(mock)
+
+			model := NewSwimModel(db)
+			summary := model.Summarize(tt.userId)
+
+			assert.Equal(t, tt.expectedSummary.TotalDistance, summary.TotalDistance)
+			assert.Equal(t, tt.expectedSummary.TotalCount, summary.TotalCount)
+			assert.Equal(t, tt.expectedSummary.MonthlyDistance, summary.MonthlyDistance)
+			assert.Equal(t, tt.expectedSummary.MonthlyCount, summary.MonthlyCount)
+			assert.Equal(t, tt.expectedSummary.WeeklyDistance, summary.WeeklyDistance)
+			assert.Equal(t, tt.expectedSummary.WeeklyCount, summary.WeeklyCount)
+
+			// Verify YearMap
+			assert.Equal(t, len(tt.expectedSummary.YearMap), len(summary.YearMap))
+			for year, expectedYearMap := range tt.expectedSummary.YearMap {
+				actualYearMap, exists := summary.YearMap[year]
+				assert.True(t, exists, "Year %d should exist in YearMap", year)
+				assert.Equal(t, expectedYearMap.Count, actualYearMap.Count)
+				assert.Equal(t, expectedYearMap.DistanceM, actualYearMap.DistanceM)
+
+				// Verify all 12 months are initialized
+				assert.Equal(t, 12, len(actualYearMap.MonthMap))
+				for month := time.January; month <= time.December; month++ {
+					expectedMonth := expectedYearMap.MonthMap[month]
+					actualMonth := actualYearMap.MonthMap[month]
+					assert.Equal(t, expectedMonth.Count, actualMonth.Count, "Month %s count mismatch", month)
+					assert.Equal(t, expectedMonth.DistanceM, actualMonth.DistanceM, "Month %s distance mismatch", month)
+				}
+			}
+
+			assert.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestSwimSummaryHelperMethods(t *testing.T) {
+	t.Run("pushYearlyFigures", func(t *testing.T) {
+		summary := &SwimSummary{}
+		swim := &Swim{DistanceM: 1500}
+
+		summary.pushYearlyFigures(swim)
+		assert.Equal(t, 1500, summary.TotalDistance)
+		assert.Equal(t, 1, summary.TotalCount)
+
+		summary.pushYearlyFigures(swim)
+		assert.Equal(t, 3000, summary.TotalDistance)
+		assert.Equal(t, 2, summary.TotalCount)
+	})
+
+	t.Run("pushWeeklyFigures - current week", func(t *testing.T) {
+		summary := &SwimSummary{}
+		now := time.Now()
+		swim := &Swim{Date: now, DistanceM: 2000}
+
+		summary.pushWeeklyFigures(swim)
+		assert.Equal(t, 2000, summary.WeeklyDistance)
+		assert.Equal(t, 1, summary.WeeklyCount)
+	})
+
+	t.Run("pushWeeklyFigures - past week", func(t *testing.T) {
+		summary := &SwimSummary{}
+		pastDate := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+		swim := &Swim{Date: pastDate, DistanceM: 2000}
+
+		summary.pushWeeklyFigures(swim)
+		assert.Equal(t, 0, summary.WeeklyDistance)
+		assert.Equal(t, 0, summary.WeeklyCount)
+	})
+
+	t.Run("updateYearMap - creates new year", func(t *testing.T) {
+		summary := &SwimSummary{YearMap: make(map[int]YearMap)}
+		swim := &Swim{Date: time.Date(2020, 6, 15, 0, 0, 0, 0, time.UTC), DistanceM: 1500}
+
+		summary.updateYearMap(swim)
+
+		yearMap, exists := summary.YearMap[2020]
+		assert.True(t, exists)
+		assert.Equal(t, 1, yearMap.Count)
+		assert.Equal(t, 1500, yearMap.DistanceM)
+		assert.Equal(t, 12, len(yearMap.MonthMap))
+	})
+
+	t.Run("updateYearMap - updates existing year", func(t *testing.T) {
+		summary := &SwimSummary{YearMap: make(map[int]YearMap)}
+		swim1 := &Swim{Date: time.Date(2020, 6, 15, 0, 0, 0, 0, time.UTC), DistanceM: 1500}
+		swim2 := &Swim{Date: time.Date(2020, 7, 20, 0, 0, 0, 0, time.UTC), DistanceM: 2000}
+
+		summary.updateYearMap(swim1)
+		summary.updateYearMap(swim2)
+
+		yearMap := summary.YearMap[2020]
+		assert.Equal(t, 2, yearMap.Count)
+		assert.Equal(t, 3500, yearMap.DistanceM)
+	})
+
+	t.Run("updateMonthMap", func(t *testing.T) {
+		summary := &SwimSummary{YearMap: make(map[int]YearMap)}
+		swim := &Swim{Date: time.Date(2020, 6, 15, 0, 0, 0, 0, time.UTC), DistanceM: 1500}
+
+		summary.updateYearMap(swim)
+		summary.updateMonthMap(swim)
+
+		monthMap := summary.YearMap[2020].MonthMap[time.June]
+		assert.Equal(t, 1, monthMap.Count)
+		assert.Equal(t, 1500, monthMap.DistanceM)
+
+		swim2 := &Swim{Date: time.Date(2020, 6, 20, 0, 0, 0, 0, time.UTC), DistanceM: 1000}
+		summary.updateYearMap(swim2)
+		summary.updateMonthMap(swim2)
+
+		monthMap = summary.YearMap[2020].MonthMap[time.June]
+		assert.Equal(t, 2, monthMap.Count)
+		assert.Equal(t, 2500, monthMap.DistanceM)
+	})
+}
