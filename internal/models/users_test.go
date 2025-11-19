@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -215,10 +214,6 @@ func TestUserModelAuthenticateLastLoginUpdate(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	// Capture the timestamp passed to the UPDATE query
-	var capturedTime time.Time
-	beforeAuth := time.Now().Add(-1 * time.Second)
-
 	rows := sqlmock.NewRows([]string{"id", "password"}).
 		AddRow(1, validHash)
 	mock.ExpectQuery("SELECT id, password FROM users WHERE username = \\$1").
@@ -233,16 +228,7 @@ func TestUserModelAuthenticateLastLoginUpdate(t *testing.T) {
 	model := NewUserModel(db)
 	id, err := model.Authenticate("testuser", validPassword)
 
-	afterAuth := time.Now().Add(1 * time.Second)
-
 	assert.NoError(t, err)
 	assert.Equal(t, 1, id)
 	assert.NoError(t, mock.ExpectationsWereMet())
-
-	// Verify that the timestamp would be between beforeAuth and afterAuth
-	// Note: We can't directly check the exact timestamp with sqlmock.AnyArg(),
-	// but we validated that the UPDATE query was called with the correct structure
-	_ = capturedTime  // Suppress unused variable warning
-	_ = beforeAuth
-	_ = afterAuth
 }
