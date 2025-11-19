@@ -800,7 +800,7 @@ button {
     box-shadow: var(--shadow-lg);
     z-index: 1500;
     transition: transform var(--transition-base), box-shadow var(--transition-base),
-    background-color var(--transition-base);
+        background-color var(--transition-base);
 
     &::after {
         content: "";
