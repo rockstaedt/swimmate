@@ -882,7 +882,19 @@ button {
                 }
 
                 .sort-indicator {
-                    font-size: 1.4rem;
+                    display: inline-flex;
+                    flex-direction: column;
+                    line-height: 1;
+                    font-size: 1.2rem;
+                    color: rgba(255, 255, 255, 0.4);
+                }
+
+                .sort-arrow {
+                    display: block;
+                    transition: color var(--transition-fast);
+                }
+
+                .sort-arrow.active {
                     color: var(--color-blue-accent);
                 }
             }

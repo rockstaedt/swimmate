@@ -23,31 +23,28 @@
                     <th>
                         <a class="sort-button" href="/swims?sort=date&direction={{$dateNext}}">
                             Date
-                            {{if eq $sort "date"}}
-                                <span class="sort-indicator">
-                                    {{if eq $direction "asc"}}↑{{else}}↓{{end}}
-                                </span>
-                            {{end}}
+                            <span class="sort-indicator">
+                                <span class="sort-arrow {{if and (eq $sort "date") (eq $direction "asc")}}active{{end}}">↑</span>
+                                <span class="sort-arrow {{if and (eq $sort "date") (eq $direction "desc")}}active{{end}}">↓</span>
+                            </span>
                         </a>
                     </th>
                     <th>
                         <a class="sort-button" href="/swims?sort=distance&direction={{$distanceNext}}">
                             Distance
-                            {{if eq $sort "distance"}}
-                                <span class="sort-indicator">
-                                    {{if eq $direction "asc"}}↑{{else}}↓{{end}}
-                                </span>
-                            {{end}}
+                            <span class="sort-indicator">
+                                <span class="sort-arrow {{if and (eq $sort "distance") (eq $direction "asc")}}active{{end}}">↑</span>
+                                <span class="sort-arrow {{if and (eq $sort "distance") (eq $direction "desc")}}active{{end}}">↓</span>
+                            </span>
                         </a>
                     </th>
                     <th>
                         <a class="sort-button" href="/swims?sort=assessment&direction={{$assessmentNext}}">
                             Assessment
-                            {{if eq $sort "assessment"}}
-                                <span class="sort-indicator">
-                                    {{if eq $direction "asc"}}↑{{else}}↓{{end}}
-                                </span>
-                            {{end}}
+                            <span class="sort-indicator">
+                                <span class="sort-arrow {{if and (eq $sort "assessment") (eq $direction "asc")}}active{{end}}">↑</span>
+                                <span class="sort-arrow {{if and (eq $sort "assessment") (eq $direction "desc")}}active{{end}}">↓</span>
+                            </span>
                         </a>
                     </th>
                 </tr>
