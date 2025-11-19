@@ -14,13 +14,14 @@ type Swim struct {
 }
 
 type SwimSummary struct {
-	TotalDistance   int
-	TotalCount      int
-	MonthlyDistance int
-	MonthlyCount    int
-	WeeklyDistance  int
-	WeeklyCount     int
-	YearMap         map[int]YearMap
+	TotalDistance    int
+	TotalCount       int
+	MonthlyDistance  int
+	MonthlyCount     int
+	WeeklyDistance   int
+	WeeklyCount      int
+	MaxActivityCount int
+	YearMap          map[int]YearMap
 }
 
 type YearMap struct {
@@ -119,6 +120,15 @@ func (sw *swimModel) Summarize(userId int) *SwimSummary {
 
 	summary.MonthlyDistance = summary.YearMap[time.Now().Year()].MonthMap[time.Now().Month()].DistanceM
 	summary.MonthlyCount = summary.YearMap[time.Now().Year()].MonthMap[time.Now().Month()].Count
+
+	// Calculate max activity count for chart scaling
+	summary.MaxActivityCount = summary.MonthlyCount
+	if summary.WeeklyCount > summary.MaxActivityCount {
+		summary.MaxActivityCount = summary.WeeklyCount
+	}
+	if summary.MaxActivityCount == 0 {
+		summary.MaxActivityCount = 10
+	}
 
 	return summary
 }
