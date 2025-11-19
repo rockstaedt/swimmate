@@ -74,6 +74,19 @@ body {
     }
 }
 
+:is(
+    .dashboard-summary .summary-card,
+    .dashboard-chart,
+    .dashboard-details .detail-card,
+    .create-swim .create-swim-card,
+    .login .login-card
+) {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius-lg);
+    background-color: var(--color-background-200);
+    box-shadow: var(--surface-shadow, var(--shadow-md));
+}
+
 header {
     display: flex;
     flex-direction: row;
@@ -346,11 +359,6 @@ button {
             align-items: center;
             gap: 1.4rem;
             padding: 2.2rem;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: var(--border-radius-lg);
-            background-color: var(--color-background-200);
-            background-image: none;
-            box-shadow: var(--shadow-md);
             position: relative;
             overflow: hidden;
 
@@ -414,10 +422,6 @@ button {
 
     .dashboard-chart {
         padding: 2rem;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: var(--border-radius-lg);
-        background: var(--color-background-200);
-        box-shadow: var(--shadow-md);
         transition: all var(--transition-base);
 
         &:hover {
@@ -612,16 +616,12 @@ button {
         }
 
         .detail-card {
+            --surface-shadow: var(--shadow);
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 1.5rem;
             padding: 2.2rem;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: var(--border-radius-lg);
-            background-color: var(--color-background-200);
-            background-image: none;
-            box-shadow: var(--shadow);
             transition: all var(--transition-base);
 
             @media (min-width: 768px) {
@@ -850,13 +850,10 @@ button {
     padding: 2rem 0;
 
     .login-card {
+        --surface-shadow: var(--shadow-xl);
         width: 100%;
         max-width: 48rem;
         padding: 3rem 2.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: var(--border-radius-lg);
-        background: var(--color-background-200);
-        box-shadow: var(--shadow-xl);
         animation: fadeIn 0.5s ease-out;
 
         @media (min-width: 768px) {
@@ -909,12 +906,9 @@ button {
     padding: 2rem 0 4rem;
 
     .create-swim-card {
+        --surface-shadow: var(--shadow-xl);
         width: 100%;
         max-width: 60rem;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: var(--border-radius-lg);
-        background: var(--color-background-200);
-        box-shadow: var(--shadow-xl);
         padding: 3rem 2.5rem;
 
         @media (min-width: 768px) {
