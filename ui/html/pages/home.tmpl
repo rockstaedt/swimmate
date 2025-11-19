@@ -7,8 +7,9 @@
                     <i class="fas fa-swimming-pool"></i>
                 </div>
                 <div class="card-content">
-                    <h3>Total Swims</h3>
+                    <span class="metric-label">Total Swims</span>
                     <p class="metric-value">{{ .Data.TotalCount }}</p>
+                    <span class="metric-subtext">lifetime total</span>
                 </div>
             </div>
             <div class="summary-card primary">
@@ -16,8 +17,9 @@
                     <i class="fas fa-route"></i>
                 </div>
                 <div class="card-content">
-                    <h3>Total Distance</h3>
+                    <span class="metric-label">Total Distance</span>
                     <p class="metric-value">{{ .Data.TotalDistance | numberFormat }}<span class="unit">m</span></p>
+                    <span class="metric-subtext">lifetime total</span>
                 </div>
             </div>
         </div>
@@ -89,19 +91,39 @@
 
         <div class="dashboard-details">
             <div class="detail-card">
-                <i class="fas fa-calendar-week"></i>
+                <div class="detail-icon">
+                    <i class="fas fa-calendar-week"></i>
+                </div>
                 <div class="detail-content">
                     <h4>This Week</h4>
-                    <p>{{ .Data.WeeklyCount }} swims</p>
-                    <p>{{ .Data.WeeklyDistance | numberFormat }}m distance</p>
+                    <div class="detail-metrics">
+                        <div class="metric">
+                            <span class="metric-value">{{ .Data.WeeklyCount }}</span>
+                            <span class="metric-label">swims</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-value">{{ .Data.WeeklyDistance | numberFormat }}<span class="unit">m</span></span>
+                            <span class="metric-label">distance</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="detail-card">
-                <i class="fas fa-calendar-alt"></i>
+                <div class="detail-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
                 <div class="detail-content">
                     <h4>This Month</h4>
-                    <p>{{ .Data.MonthlyCount }} swims</p>
-                    <p>{{ .Data.MonthlyDistance | numberFormat }}m distance</p>
+                    <div class="detail-metrics">
+                        <div class="metric">
+                            <span class="metric-value">{{ .Data.MonthlyCount }}</span>
+                            <span class="metric-label">swims</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-value">{{ .Data.MonthlyDistance | numberFormat }}<span class="unit">m</span></span>
+                            <span class="metric-label">distance</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
