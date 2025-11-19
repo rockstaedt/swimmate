@@ -1,6 +1,6 @@
 module github.com/rockstaedt/swimmate
 
-go 1.21
+go 1.25
 
 require (
 	github.com/alexedwards/scs/postgresstore v0.0.0-20240316134038-7e11d57e8885

@@ -9,7 +9,7 @@ architecture with PostgreSQL for data persistence.
 
 **Technology Stack:**
 
-- Backend: Go 1.21
+- Backend: Go 1.25
 - Web Framework: `httprouter` for routing, `alice` for middleware chaining
 - Database: PostgreSQL with `lib/pq` driver
 - Session Management: `scs/v2` with PostgreSQL store
