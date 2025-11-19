@@ -27,16 +27,6 @@ docker-compose up
 # The application will be available at http://localhost:8998
 ```
 
-### Building
-
-```bash
-# Build the binary
-go build -o swimmate ./cmd/web
-
-# Build for production (Linux)
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags='-s -X main.version=<version>' -o swimmate ./cmd/web
-```
-
 ### Testing
 
 ```bash
@@ -70,7 +60,8 @@ go run ./cmd/seed \
   -days-back 730
 ```
 
-Available flags: `-username` (required), `-password`, `-first-name`, `-last-name`, `-email`, `-swims`, `-days-back`. See `cmd/seed/README.md` for details.
+Available flags: `-username` (required), `-password`, `-first-name`, `-last-name`, `-email`, `-swims`, `-days-back`. See
+`cmd/seed/README.md` for details.
 
 ## Architecture
 
