@@ -21,7 +21,11 @@
                         {{ $assessmentNext = "desc" }}
                     {{ end }}
                     <th>
-                        <a class="sort-button" href="/swims?sort=date&direction={{$dateNext}}">
+                        <a class="sort-button"
+                           href="/swims?sort=date&direction={{$dateNext}}"
+                           role="button"
+                           aria-sort="{{if eq $sort "date"}}{{if eq $direction "asc"}}ascending{{else}}descending{{end}}{{else}}none{{end}}"
+                           aria-label="Sort by date {{if eq $dateNext "asc"}}ascending{{else}}descending{{end}}">
                             Date
                             <span class="sort-indicator">
                                 <span class="sort-arrow {{if and (eq $sort "date") (eq $direction "asc")}}active{{end}}">↑</span>
@@ -30,7 +34,11 @@
                         </a>
                     </th>
                     <th>
-                        <a class="sort-button" href="/swims?sort=distance&direction={{$distanceNext}}">
+                        <a class="sort-button"
+                           href="/swims?sort=distance&direction={{$distanceNext}}"
+                           role="button"
+                           aria-sort="{{if eq $sort "distance"}}{{if eq $direction "asc"}}ascending{{else}}descending{{end}}{{else}}none{{end}}"
+                           aria-label="Sort by distance {{if eq $distanceNext "asc"}}ascending{{else}}descending{{end}}">
                             Distance
                             <span class="sort-indicator">
                                 <span class="sort-arrow {{if and (eq $sort "distance") (eq $direction "asc")}}active{{end}}">↑</span>
@@ -39,7 +47,11 @@
                         </a>
                     </th>
                     <th>
-                        <a class="sort-button" href="/swims?sort=assessment&direction={{$assessmentNext}}">
+                        <a class="sort-button"
+                           href="/swims?sort=assessment&direction={{$assessmentNext}}"
+                           role="button"
+                           aria-sort="{{if eq $sort "assessment"}}{{if eq $direction "asc"}}ascending{{else}}descending{{end}}{{else}}none{{end}}"
+                           aria-label="Sort by assessment {{if eq $assessmentNext "asc"}}ascending{{else}}descending{{end}}">
                             Assessment
                             <span class="sort-indicator">
                                 <span class="sort-arrow {{if and (eq $sort "assessment") (eq $direction "asc")}}active{{end}}">↑</span>
