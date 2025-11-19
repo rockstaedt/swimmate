@@ -172,7 +172,7 @@ The GitHub Actions workflow (`.github/workflows/cicd.yml`) runs on pushes to mai
 - All templates must be in `ui/html/` to be embedded in binary
 - Static assets served from `/static/` route map to `ui/static/` directory
 
-## Version controle
+## Version control
 
 Keep commits atomic: commit only the files you touched and list each path explicitly.
 For tracked files run `git commit -m "<scoped message>" -- path/to/file1 path/to/file2`.
