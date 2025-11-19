@@ -136,5 +136,15 @@
                 <i class="fas fa-list"></i> View All Swims
             </button>
         </div>
+
+        <button type="button"
+                class="dashboard-fab"
+                hx-get="/swim"
+                hx-target="body"
+                hx-push-url="true"
+                aria-label="Add a swim">
+            <i class="fas fa-plus"></i>
+            <span>Add Swim</span>
+        </button>
     </div>
 {{end}}
