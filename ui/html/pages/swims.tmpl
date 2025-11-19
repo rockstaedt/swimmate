@@ -6,25 +6,67 @@
             <table>
                 <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Distance</th>
-                    <th>Assessment</th>
+                    {{ $sort := .Data.Sort }}
+                    {{ $direction := .Data.Direction }}
+                    {{ $dateNext := "asc" }}
+                    {{ if and (eq $sort "date") (eq $direction "asc") }}
+                        {{ $dateNext = "desc" }}
+                    {{ end }}
+                    {{ $distanceNext := "asc" }}
+                    {{ if and (eq $sort "distance") (eq $direction "asc") }}
+                        {{ $distanceNext = "desc" }}
+                    {{ end }}
+                    {{ $assessmentNext := "asc" }}
+                    {{ if and (eq $sort "assessment") (eq $direction "asc") }}
+                        {{ $assessmentNext = "desc" }}
+                    {{ end }}
+                    <th>
+                        <a class="sort-button"
+                           href="/swims?sort=date&direction={{$dateNext}}"
+                           role="button"
+                           aria-sort="{{if eq $sort "date"}}{{if eq $direction "asc"}}ascending{{else}}descending{{end}}{{else}}none{{end}}"
+                           aria-label="Sort by date {{if eq $dateNext "asc"}}ascending{{else}}descending{{end}}">
+                            Date
+                            <span class="sort-indicator">
+                                <span class="sort-arrow {{if and (eq $sort "date") (eq $direction "asc")}}active{{end}}">↑</span>
+                                <span class="sort-arrow {{if and (eq $sort "date") (eq $direction "desc")}}active{{end}}">↓</span>
+                            </span>
+                        </a>
+                    </th>
+                    <th>
+                        <a class="sort-button"
+                           href="/swims?sort=distance&direction={{$distanceNext}}"
+                           role="button"
+                           aria-sort="{{if eq $sort "distance"}}{{if eq $direction "asc"}}ascending{{else}}descending{{end}}{{else}}none{{end}}"
+                           aria-label="Sort by distance {{if eq $distanceNext "asc"}}ascending{{else}}descending{{end}}">
+                            Distance
+                            <span class="sort-indicator">
+                                <span class="sort-arrow {{if and (eq $sort "distance") (eq $direction "asc")}}active{{end}}">↑</span>
+                                <span class="sort-arrow {{if and (eq $sort "distance") (eq $direction "desc")}}active{{end}}">↓</span>
+                            </span>
+                        </a>
+                    </th>
+                    <th>
+                        <a class="sort-button"
+                           href="/swims?sort=assessment&direction={{$assessmentNext}}"
+                           role="button"
+                           aria-sort="{{if eq $sort "assessment"}}{{if eq $direction "asc"}}ascending{{else}}descending{{end}}{{else}}none{{end}}"
+                           aria-label="Sort by assessment {{if eq $assessmentNext "asc"}}ascending{{else}}descending{{end}}">
+                            Assessment
+                            <span class="sort-indicator">
+                                <span class="sort-arrow {{if and (eq $sort "assessment") (eq $direction "asc")}}active{{end}}">↑</span>
+                                <span class="sort-arrow {{if and (eq $sort "assessment") (eq $direction "desc")}}active{{end}}">↓</span>
+                            </span>
+                        </a>
+                    </th>
                 </tr>
                 </thead>
                 <tbody>
                 {{range .Data.Swims}}
                     {{template "swim-row" .}}
                 {{end}}
-                {{if eq (len .Data.Swims) .Data.Limit}}
-                    <tr id="load-more-row">
-                        <td colspan="3" class="load-more-cell">
-                            <button hx-get="/swims/more?offset={{add .Data.Offset .Data.Limit}}"
-                                    hx-target="#load-more-row"
-                                    hx-swap="outerHTML">
-                                Load More
-                            </button>
-                        </td>
-                    </tr>
+                {{if .Data.LoadMore}}
+                    {{template "load-more-button" .Data.LoadMore}}
                 {{end}}
                 </tbody>
             </table>

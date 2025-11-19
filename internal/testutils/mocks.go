@@ -8,11 +8,11 @@ import (
 
 // MockSwimModel is a mock implementation of models.SwimModel for testing
 type MockSwimModel struct {
-	GetFunc           func() (*models.Swim, error)
-	GetAllFunc        func(userId int) ([]*models.Swim, error)
-	GetPaginatedFunc  func(userId int, limit int, offset int) ([]*models.Swim, error)
-	InsertFunc        func(date time.Time, distanceM int, assessment int, userId int) error
-	SummarizeFunc     func(userId int) *models.SwimSummary
+	GetFunc          func() (*models.Swim, error)
+	GetAllFunc       func(userId int) ([]*models.Swim, error)
+	GetPaginatedFunc func(userId int, limit int, offset int, sort string, direction string) ([]*models.Swim, error)
+	InsertFunc       func(date time.Time, distanceM int, assessment int, userId int) error
+	SummarizeFunc    func(userId int) *models.SwimSummary
 }
 
 func (m *MockSwimModel) Get() (*models.Swim, error) {
@@ -29,9 +29,9 @@ func (m *MockSwimModel) GetAll(userId int) ([]*models.Swim, error) {
 	return []*models.Swim{}, nil
 }
 
-func (m *MockSwimModel) GetPaginated(userId int, limit int, offset int) ([]*models.Swim, error) {
+func (m *MockSwimModel) GetPaginated(userId int, limit int, offset int, sort string, direction string) ([]*models.Swim, error) {
 	if m.GetPaginatedFunc != nil {
-		return m.GetPaginatedFunc(userId, limit, offset)
+		return m.GetPaginatedFunc(userId, limit, offset, sort, direction)
 	}
 	return []*models.Swim{}, nil
 }
