@@ -252,6 +252,11 @@ func (app *application) storeSwim(w http.ResponseWriter, r *http.Request) {
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
+	if assessment < 0 || assessment > 2 {
+		app.logger.Error("invalid assessment value")
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
 
 	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
 	err = app.swims.Insert(date, distanceM, assessment, userId)
