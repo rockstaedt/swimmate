@@ -1,8 +1,12 @@
 package main
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
+	"time"
 
+	"github.com/rockstaedt/swimmate/internal/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -319,4 +323,188 @@ func TestNewFlash(t *testing.T) {
 			assert.Equal(t, tt.expectedFlash, result)
 		})
 	}
+}
+
+func TestWithPartial(t *testing.T) {
+	tests := []struct {
+		name           string
+		originalData   templateData
+		partial        interface{}
+		expectedData   templateData
+	}{
+		{
+			name: "with swim data",
+			originalData: templateData{
+				Version: "1.0.0",
+				Data:    "original",
+			},
+			partial: &models.Swim{
+				Id:         1,
+				Date:       time.Now(),
+				DistanceM:  1500,
+				Assessment: 2,
+			},
+			expectedData: templateData{
+				Version: "1.0.0",
+				Data:    "original",
+				Partial: &models.Swim{
+					Id:         1,
+					Date:       time.Now(),
+					DistanceM:  1500,
+					Assessment: 2,
+				},
+			},
+		},
+		{
+			name: "with string partial",
+			originalData: templateData{
+				Version: "1.0.0",
+				Data:    "original",
+			},
+			partial: "test string",
+			expectedData: templateData{
+				Version: "1.0.0",
+				Data:    "original",
+				Partial: "test string",
+			},
+		},
+		{
+			name: "with nil partial",
+			originalData: templateData{
+				Version:         "1.0.0",
+				Data:            "original",
+				IsAuthenticated: true,
+			},
+			partial: nil,
+			expectedData: templateData{
+				Version:         "1.0.0",
+				Data:            "original",
+				IsAuthenticated: true,
+				Partial:         nil,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := withPartial(tt.originalData, tt.partial)
+			assert.Equal(t, tt.expectedData.Version, result.Version)
+			assert.Equal(t, tt.expectedData.Data, result.Data)
+			assert.Equal(t, tt.expectedData.IsAuthenticated, result.IsAuthenticated)
+			if tt.partial != nil {
+				assert.NotNil(t, result.Partial)
+			} else {
+				assert.Nil(t, result.Partial)
+			}
+		})
+	}
+}
+
+func TestNewTemplateData(t *testing.T) {
+	tests := []struct {
+		name                string
+		setupSession        func(*application, *http.Request) *http.Request
+		data                interface{}
+		expectAuthenticated bool
+		expectFlash         bool
+	}{
+		{
+			name: "with authenticated user",
+			setupSession: func(app *application, r *http.Request) *http.Request {
+				ctx, _ := app.sessionManager.Load(r.Context(), "")
+				app.sessionManager.Put(ctx, "authenticatedUserID", 1)
+				return r.WithContext(ctx)
+			},
+			data:                "test data",
+			expectAuthenticated: true,
+			expectFlash:         false,
+		},
+		{
+			name: "without authenticated user",
+			setupSession: func(app *application, r *http.Request) *http.Request {
+				ctx, _ := app.sessionManager.Load(r.Context(), "")
+				return r.WithContext(ctx)
+			},
+			data:                "test data",
+			expectAuthenticated: false,
+			expectFlash:         false,
+		},
+		{
+			name: "with flash message",
+			setupSession: func(app *application, r *http.Request) *http.Request {
+				ctx, _ := app.sessionManager.Load(r.Context(), "")
+				app.sessionManager.Put(ctx, "flashText", "Success!")
+				app.sessionManager.Put(ctx, "flashType", "flash-success")
+				return r.WithContext(ctx)
+			},
+			data:                nil,
+			expectAuthenticated: false,
+			expectFlash:         true,
+		},
+		{
+			name: "with empty flash text",
+			setupSession: func(app *application, r *http.Request) *http.Request {
+				ctx, _ := app.sessionManager.Load(r.Context(), "")
+				app.sessionManager.Put(ctx, "flashText", "")
+				return r.WithContext(ctx)
+			},
+			data:                nil,
+			expectAuthenticated: false,
+			expectFlash:         false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApplication()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r = tt.setupSession(app, r)
+
+			result := app.newTemplateData(r, tt.data)
+
+			assert.Equal(t, "test", result.Version)
+			assert.Equal(t, tt.data, result.Data)
+			assert.Equal(t, tt.expectAuthenticated, result.IsAuthenticated)
+
+			if tt.expectFlash {
+				assert.NotNil(t, result.Flash)
+				assert.NotEmpty(t, result.Flash.Text)
+			} else {
+				assert.Nil(t, result.Flash)
+			}
+
+			assert.NotEmpty(t, result.CurrentDate)
+		})
+	}
+}
+
+func TestNewTemplateCache(t *testing.T) {
+	cache, err := newTemplateCache()
+
+	assert.NoError(t, err, "newTemplateCache should not return an error")
+	assert.NotEmpty(t, cache, "cache should not be empty")
+
+	expectedTemplates := []string{
+		"home.tmpl",
+		"login.tmpl",
+		"about.tmpl",
+		"swims.tmpl",
+		"yearly-figures.tmpl",
+		"swim-create.tmpl",
+		"swim-edit.tmpl",
+	}
+
+	for _, tmpl := range expectedTemplates {
+		t.Run("has template "+tmpl, func(t *testing.T) {
+			assert.Contains(t, cache, tmpl, "cache should contain "+tmpl)
+			assert.NotNil(t, cache[tmpl], tmpl+" should not be nil")
+		})
+	}
+
+	t.Run("templates have base", func(t *testing.T) {
+		for name, tmpl := range cache {
+			baseTemplate := tmpl.Lookup("base")
+			assert.NotNil(t, baseTemplate, "template "+name+" should have base")
+		}
+	})
 }
