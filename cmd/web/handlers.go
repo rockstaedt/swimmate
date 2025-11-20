@@ -310,6 +310,11 @@ func (app *application) updateSwim(w http.ResponseWriter, r *http.Request) {
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
+	if assessment < 0 || assessment > 2 {
+		app.logger.Error("invalid assessment value")
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
 
 	sort := normalizeSwimSortValue(r.PostForm.Get("sort"))
 	direction := normalizeSortDirectionValue(r.PostForm.Get("direction"))
