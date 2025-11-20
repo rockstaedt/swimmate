@@ -1064,7 +1064,7 @@ func TestDeleteSwim(t *testing.T) {
 				}
 			},
 			expectedStatus:   http.StatusSeeOther,
-			expectedLocation: "/swims",
+			expectedLocation: "/swims?direction=desc&sort=date",
 			expectFlash:      true,
 		},
 		{
@@ -1122,6 +1122,30 @@ func TestDeleteSwim(t *testing.T) {
 			expectFlash:    false,
 		},
 	}
+
+	// Test with query parameters
+	t.Run("successful delete with sort parameters", func(t *testing.T) {
+		app := newTestApplication()
+
+		mockSwims := &testutils.MockSwimModel{}
+		mockSwims.DeleteFunc = func(id int, userId int) error {
+			return nil
+		}
+		app.swims = mockSwims
+
+		rr := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodDelete, "/swims/5?sort=distance&direction=asc", nil)
+
+		ctx, _ := app.sessionManager.Load(r.Context(), "")
+		app.sessionManager.Put(ctx, "authenticatedUserID", 1)
+		ctx = context.WithValue(ctx, httprouter.ParamsKey, httprouter.Params{{Key: "id", Value: "5"}})
+		r = r.WithContext(ctx)
+
+		app.deleteSwim(rr, r)
+
+		assert.Equal(t, http.StatusSeeOther, rr.Code)
+		assert.Equal(t, "/swims?direction=asc&sort=distance", rr.Header().Get("Location"))
+	})
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
