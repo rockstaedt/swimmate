@@ -78,7 +78,7 @@ body {
     .dashboard-summary .summary-card,
     .dashboard-chart,
     .dashboard-details .detail-card,
-    .create-swim .create-swim-card,
+    .swim-form-page .swim-form-card,
     .login .login-card
 ) {
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -900,12 +900,12 @@ button {
     }
 }
 
-.create-swim {
+.swim-form-page {
     display: flex;
     justify-content: center;
     padding: 2rem 0 4rem;
 
-    .create-swim-card {
+    .swim-form-card {
         --surface-shadow: var(--shadow-xl);
         width: 100%;
         max-width: 60rem;
@@ -939,7 +939,7 @@ button {
         }
     }
 
-    .create-swim-header {
+    .swim-form-header {
         display: flex;
         align-items: center;
         gap: 1.6rem;

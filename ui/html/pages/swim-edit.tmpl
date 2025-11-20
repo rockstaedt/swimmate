@@ -2,13 +2,13 @@
 {{define "main"}}
     {{with $data := .Data}}
         {{with $swim := $data.Swim}}
-            <div class="create-swim">
-                <div class="create-swim-card">
+            <div class="swim-form-page">
+                <div class="swim-form-card">
                     <a href="/swims?sort={{$data.Sort}}&direction={{$data.Direction}}" class="back-link">
                         <i class="fas fa-arrow-left"></i>
                         Back
                     </a>
-                    <div class="create-swim-header">
+                    <div class="swim-form-header">
                         <div class="header-icon">
                             <i class="fas fa-pen"></i>
                         </div>
