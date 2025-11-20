@@ -4,6 +4,10 @@
         {{with $swim := $data.Swim}}
             <div class="create-swim">
                 <div class="create-swim-card">
+                    <a href="/swims?sort={{$data.Sort}}&direction={{$data.Direction}}" class="back-link">
+                        <i class="fas fa-arrow-left"></i>
+                        Back
+                    </a>
                     <div class="create-swim-header">
                         <div class="header-icon">
                             <i class="fas fa-pen"></i>

@@ -916,6 +916,29 @@ button {
         }
     }
 
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin-bottom: 1rem;
+        padding: 0.8rem 1.2rem;
+        border-radius: 0.8rem;
+        font-size: 1.5rem;
+        font-weight: 500;
+        color: var(--color-text-muted);
+        text-decoration: none;
+        transition: all var(--transition-base);
+
+        i {
+            font-size: 1.4rem;
+        }
+
+        &:hover {
+            color: var(--color-blue-accent);
+            background: rgba(6, 182, 212, 0.1);
+        }
+    }
+
     .create-swim-header {
         display: flex;
         align-items: center;
