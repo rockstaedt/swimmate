@@ -161,6 +161,54 @@ func TestAuthenticate(t *testing.T) {
 			},
 			expectedStatus: http.StatusInternalServerError,
 		},
+		{
+			name: "empty username",
+			formData: url.Values{
+				"username": []string{""},
+				"password": []string{"password123"},
+			},
+			setupMock: func(m *testutils.MockUserModel) {
+				m.AuthenticateFunc = func(username, password string) (int, error) {
+					return 0, models.ErrInvalidCredentials
+				}
+			},
+			expectedStatus: http.StatusOK,
+			expectFlash:    true,
+			flashType:      "flash-error",
+		},
+		{
+			name: "empty password",
+			formData: url.Values{
+				"username": []string{"testuser"},
+				"password": []string{""},
+			},
+			setupMock: func(m *testutils.MockUserModel) {
+				m.AuthenticateFunc = func(username, password string) (int, error) {
+					return 0, models.ErrInvalidCredentials
+				}
+			},
+			expectedStatus: http.StatusOK,
+			expectFlash:    true,
+			flashType:      "flash-error",
+		},
+		{
+			name: "successful authentication sets session",
+			formData: url.Values{
+				"username": []string{"admin"},
+				"password": []string{"admin123"},
+			},
+			setupMock: func(m *testutils.MockUserModel) {
+				m.AuthenticateFunc = func(username, password string) (int, error) {
+					if username == "admin" && password == "admin123" {
+						return 42, nil
+					}
+					return 0, models.ErrInvalidCredentials
+				}
+			},
+			expectedStatus:   http.StatusSeeOther,
+			expectedLocation: "/",
+			expectFlash:      false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -191,19 +239,56 @@ func TestAuthenticate(t *testing.T) {
 }
 
 func TestLogout(t *testing.T) {
-	app := newTestApplication()
+	tests := []struct {
+		name               string
+		authenticated      bool
+		expectedStatus     int
+		expectedLocation   string
+		expectFlashMessage bool
+	}{
+		{
+			name:               "successful logout with authenticated user",
+			authenticated:      true,
+			expectedStatus:     http.StatusSeeOther,
+			expectedLocation:   "/login",
+			expectFlashMessage: true,
+		},
+		{
+			name:               "logout without authenticated user",
+			authenticated:      false,
+			expectedStatus:     http.StatusSeeOther,
+			expectedLocation:   "/login",
+			expectFlashMessage: true,
+		},
+	}
 
-	rr := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodPost, "/logout", nil)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApplication()
 
-	ctx, _ := app.sessionManager.Load(r.Context(), "")
-	app.sessionManager.Put(ctx, "authenticatedUserID", 1)
-	r = r.WithContext(ctx)
+			rr := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodPost, "/logout", nil)
 
-	app.logout(rr, r)
+			ctx, _ := app.sessionManager.Load(r.Context(), "")
+			if tt.authenticated {
+				app.sessionManager.Put(ctx, "authenticatedUserID", 1)
+			}
+			r = r.WithContext(ctx)
 
-	assert.Equal(t, http.StatusSeeOther, rr.Code)
-	assert.Equal(t, "/login", rr.Header().Get("Location"))
+			app.logout(rr, r)
+
+			assert.Equal(t, tt.expectedStatus, rr.Code)
+			assert.Equal(t, tt.expectedLocation, rr.Header().Get("Location"))
+
+			if tt.expectFlashMessage {
+				flashText := app.sessionManager.GetString(ctx, "flashText")
+				assert.NotEmpty(t, flashText)
+			}
+
+			userID := app.sessionManager.GetInt(ctx, "authenticatedUserID")
+			assert.Equal(t, 0, userID, "authenticatedUserID should be removed from session")
+		})
+	}
 }
 
 func TestYearlyFigures(t *testing.T) {
@@ -395,6 +480,77 @@ func TestSwimsMore(t *testing.T) {
 					return []*models.Swim{
 						{Date: time.Now(), DistanceM: 1000, Assessment: 2},
 					}, nil
+				}
+			},
+			expectStatus: http.StatusOK,
+		},
+		{
+			name:        "HTMX request with database error",
+			requestURL:  "/swims/more?offset=20",
+			htmxRequest: true,
+			setupMock: func(m *testutils.MockSwimModel, t *testing.T) {
+				m.GetPaginatedFunc = func(userId int, limit int, offset int, sort string, direction string) ([]*models.Swim, error) {
+					return nil, errors.New("database error")
+				}
+			},
+			expectStatus: http.StatusInternalServerError,
+		},
+		{
+			name:        "non-HTMX request with database error",
+			requestURL:  "/swims/more?offset=20",
+			htmxRequest: false,
+			setupMock: func(m *testutils.MockSwimModel, t *testing.T) {
+				m.GetPaginatedFunc = func(userId int, limit int, offset int, sort string, direction string) ([]*models.Swim, error) {
+					return nil, errors.New("database error")
+				}
+			},
+			expectStatus: http.StatusInternalServerError,
+		},
+		{
+			name:        "invalid offset defaults to zero",
+			requestURL:  "/swims/more?offset=abc",
+			htmxRequest: true,
+			setupMock: func(m *testutils.MockSwimModel, t *testing.T) {
+				m.GetPaginatedFunc = func(userId int, limit int, offset int, sort string, direction string) ([]*models.Swim, error) {
+					assert.Equal(t, 0, offset, "invalid offset should default to 0")
+					return []*models.Swim{
+						{Date: time.Now(), DistanceM: 1000, Assessment: 2},
+					}, nil
+				}
+			},
+			expectStatus: http.StatusOK,
+		},
+		{
+			name:        "negative offset defaults to zero",
+			requestURL:  "/swims/more?offset=-10",
+			htmxRequest: true,
+			setupMock: func(m *testutils.MockSwimModel, t *testing.T) {
+				m.GetPaginatedFunc = func(userId int, limit int, offset int, sort string, direction string) ([]*models.Swim, error) {
+					return []*models.Swim{
+						{Date: time.Now(), DistanceM: 1000, Assessment: 2},
+					}, nil
+				}
+			},
+			expectStatus: http.StatusOK,
+		},
+		{
+			name:        "HTMX request with empty results",
+			requestURL:  "/swims/more?offset=100",
+			htmxRequest: true,
+			setupMock: func(m *testutils.MockSwimModel, t *testing.T) {
+				m.GetPaginatedFunc = func(userId int, limit int, offset int, sort string, direction string) ([]*models.Swim, error) {
+					return []*models.Swim{}, nil
+				}
+			},
+			expectStatus: http.StatusOK,
+		},
+		{
+			name:        "non-HTMX request with empty results",
+			requestURL:  "/swims/more?offset=100",
+			htmxRequest: false,
+			setupMock: func(m *testutils.MockSwimModel, t *testing.T) {
+				m.GetPaginatedFunc = func(userId int, limit int, offset int, sort string, direction string) ([]*models.Swim, error) {
+					return []*models.Swim{}, nil
 				}
 			},
 			expectStatus: http.StatusOK,
@@ -713,6 +869,66 @@ func TestUpdateSwim(t *testing.T) {
 				}
 			},
 			expectedStatus: http.StatusInternalServerError,
+		},
+		{
+			name:           "negative swim ID",
+			swimID:         "-5",
+			form:           validForm,
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:           "zero swim ID",
+			swimID:         "0",
+			form:           validForm,
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:           "non-numeric swim ID",
+			swimID:         "abc",
+			form:           validForm,
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:   "invalid distance format",
+			swimID: "5",
+			form: url.Values{
+				"date":       []string{"2024-02-01"},
+				"distance_m": []string{"not-a-number"},
+				"assessment": []string{"2"},
+			},
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:   "invalid assessment format",
+			swimID: "5",
+			form: url.Values{
+				"date":       []string{"2024-02-01"},
+				"distance_m": []string{"2000"},
+				"assessment": []string{"invalid"},
+			},
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:   "extremely large distance",
+			swimID: "5",
+			form: url.Values{
+				"date":       []string{"2024-02-01"},
+				"distance_m": []string{"999999"},
+				"assessment": []string{"2"},
+			},
+			setupMock: func(m *testutils.MockSwimModel) {
+				m.UpdateFunc = func(id int, userId int, date time.Time, distanceM int, assessment int) error {
+					assert.Equal(t, 999999, distanceM)
+					return nil
+				}
+			},
+			expectedStatus:   http.StatusSeeOther,
+			expectedLocation: "/swims?direction=desc&sort=date",
 		},
 	}
 
