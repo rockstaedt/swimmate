@@ -24,28 +24,6 @@
             </div>
         </div>
 
-        <div class="dashboard-chart">
-            <h3><i class="fas fa-chart-bar"></i> Activity Overview</h3>
-            <div class="chart-container">
-                <div class="chart-bar">
-                    <div class="bar-label">This Week</div>
-                    <div class="bar-wrapper">
-                        <div class="bar weekly"
-                             style="--value: {{ .Data.WeeklyCount }}; --max: {{ .Data.MaxActivityCount }}"></div>
-                        <span class="bar-value">{{ .Data.WeeklyCount }}</span>
-                    </div>
-                </div>
-                <div class="chart-bar">
-                    <div class="bar-label">This Month</div>
-                    <div class="bar-wrapper">
-                        <div class="bar monthly"
-                             style="--value: {{ .Data.MonthlyCount }}; --max: {{ .Data.MaxActivityCount }}"></div>
-                        <span class="bar-value">{{ .Data.MonthlyCount }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         {{$yearData := index .Data.YearMap .CurrentYear}}
         {{if $yearData}}
             <div class="dashboard-chart cumulative-chart">
@@ -89,6 +67,28 @@
             </div>
         {{end}}
 
+        <div class="dashboard-chart">
+            <h3><i class="fas fa-chart-bar"></i> Activity Overview</h3>
+            <div class="chart-container">
+                <div class="chart-bar">
+                    <div class="bar-label">This Week</div>
+                    <div class="bar-wrapper">
+                        <div class="bar weekly"
+                             style="--value: {{ .Data.WeeklyCount }}; --max: {{ .Data.MaxActivityCount }}"></div>
+                        <span class="bar-value">{{ .Data.WeeklyCount }}</span>
+                    </div>
+                </div>
+                <div class="chart-bar">
+                    <div class="bar-label">This Month</div>
+                    <div class="bar-wrapper">
+                        <div class="bar monthly"
+                             style="--value: {{ .Data.MonthlyCount }}; --max: {{ .Data.MaxActivityCount }}"></div>
+                        <span class="bar-value">{{ .Data.MonthlyCount }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="dashboard-details">
             <div class="detail-card">
                 <div class="detail-icon">
@@ -102,7 +102,8 @@
                             <span class="metric-label">swims</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-value">{{ .Data.WeeklyDistance | numberFormat }}<span class="unit">m</span></span>
+                            <span class="metric-value">{{ .Data.WeeklyDistance | numberFormat }}<span
+                                        class="unit">m</span></span>
                             <span class="metric-label">distance</span>
                         </div>
                     </div>
@@ -120,7 +121,8 @@
                             <span class="metric-label">swims</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-value">{{ .Data.MonthlyDistance | numberFormat }}<span class="unit">m</span></span>
+                            <span class="metric-value">{{ .Data.MonthlyDistance | numberFormat }}<span
+                                        class="unit">m</span></span>
                             <span class="metric-label">distance</span>
                         </div>
                     </div>
@@ -137,12 +139,12 @@
             </button>
         </div>
 
-            <button type="button"
-                    class="dashboard-fab"
-                    hx-get="/swim"
-                    hx-target="body"
-                    hx-push-url="true"
-                    aria-label="Add Swim">
+        <button type="button"
+                class="dashboard-fab"
+                hx-get="/swim"
+                hx-target="body"
+                hx-push-url="true"
+                aria-label="Add Swim">
             <i class="fas fa-plus"></i>
             <span>Add Swim</span>
         </button>
