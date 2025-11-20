@@ -44,7 +44,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 	}
 }
 
-func (app *application) renderPartial(w http.ResponseWriter, r *http.Request, templateName, partialName string, data interface{}) {
+func (app *application) renderPartial(w http.ResponseWriter, r *http.Request, templateName, partialName string, pageData interface{}, partial interface{}) {
 	ts, ok := app.templateCache[templateName]
 	if !ok {
 		err := fmt.Errorf("the template %s does not exist", templateName)
@@ -53,7 +53,10 @@ func (app *application) renderPartial(w http.ResponseWriter, r *http.Request, te
 	}
 
 	buf := new(bytes.Buffer)
-	err := ts.ExecuteTemplate(buf, partialName, data)
+	td := app.newTemplateData(r, pageData)
+	td.Partial = partial
+
+	err := ts.ExecuteTemplate(buf, partialName, td)
 	if err != nil {
 		app.serverError(w, r, err)
 		return

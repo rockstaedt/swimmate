@@ -9,15 +9,25 @@ import (
 // MockSwimModel is a mock implementation of models.SwimModel for testing
 type MockSwimModel struct {
 	GetFunc          func() (*models.Swim, error)
+	GetByIDFunc      func(userId int, swimId int) (*models.Swim, error)
 	GetAllFunc       func(userId int) ([]*models.Swim, error)
 	GetPaginatedFunc func(userId int, limit int, offset int, sort string, direction string) ([]*models.Swim, error)
 	InsertFunc       func(date time.Time, distanceM int, assessment int, userId int) error
+	UpdateFunc       func(id int, userId int, date time.Time, distanceM int, assessment int) error
+	DeleteFunc       func(id int, userId int) error
 	SummarizeFunc    func(userId int) *models.SwimSummary
 }
 
 func (m *MockSwimModel) Get() (*models.Swim, error) {
 	if m.GetFunc != nil {
 		return m.GetFunc()
+	}
+	return &models.Swim{}, nil
+}
+
+func (m *MockSwimModel) GetByID(userId int, swimId int) (*models.Swim, error) {
+	if m.GetByIDFunc != nil {
+		return m.GetByIDFunc(userId, swimId)
 	}
 	return &models.Swim{}, nil
 }
@@ -39,6 +49,20 @@ func (m *MockSwimModel) GetPaginated(userId int, limit int, offset int, sort str
 func (m *MockSwimModel) Insert(date time.Time, distanceM int, assessment int, userId int) error {
 	if m.InsertFunc != nil {
 		return m.InsertFunc(date, distanceM, assessment, userId)
+	}
+	return nil
+}
+
+func (m *MockSwimModel) Update(id int, userId int, date time.Time, distanceM int, assessment int) error {
+	if m.UpdateFunc != nil {
+		return m.UpdateFunc(id, userId, date, distanceM, assessment)
+	}
+	return nil
+}
+
+func (m *MockSwimModel) Delete(id int, userId int) error {
+	if m.DeleteFunc != nil {
+		return m.DeleteFunc(id, userId)
 	}
 	return nil
 }

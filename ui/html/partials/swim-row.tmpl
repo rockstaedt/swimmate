@@ -1,14 +1,24 @@
 {{define "swim-row"}}
-<tr>
-    <td>{{.Date.Format "2006-01-02"}}</td>
-    <td>{{.DistanceM | numberFormat}} m</td>
-    <td>
-        {{range $i := seq (add .Assessment 1)}}
-            <i class="fas fa-star"></i>
-        {{end}}
-        {{range $i := seq (emptyStars .Assessment)}}
-            <i class="far fa-star"></i>
-        {{end}}
-    </td>
-</tr>
+    {{$root := .}}
+    {{$swim := $root.Partial}}
+    {{if $swim}}
+        {{$editURL := printf "/swims/edit/%d?sort=%s&direction=%s" $swim.Id $root.Data.Sort $root.Data.Direction}}
+        <tr class="swim-row"
+            onclick="window.location.href='{{$editURL}}'"
+            onkeydown="if (event.key === 'Enter') { event.preventDefault(); window.location.href='{{$editURL}}'; } else if (event.key === ' ' && event.target === document.activeElement) { event.preventDefault(); window.location.href='{{$editURL}}'; }"
+            role="button"
+            tabindex="0"
+            aria-label="Edit swim from {{$swim.Date.Format "2006-01-02"}}">
+            <td>{{$swim.Date.Format "2006-01-02"}}</td>
+            <td>{{$swim.DistanceM | numberFormat}} m</td>
+            <td>
+                {{range $i := seq (add $swim.Assessment 1)}}
+                    <i class="fas fa-star"></i>
+                {{end}}
+                {{range $i := seq (emptyStars $swim.Assessment)}}
+                    <i class="far fa-star"></i>
+                {{end}}
+            </td>
+        </tr>
+    {{end}}
 {{end}}

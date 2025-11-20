@@ -4,3 +4,4 @@
 /dump.psql.gz
 /.claude/*
 /coverage*
+/.cache/

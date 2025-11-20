@@ -2,6 +2,10 @@
 
 {{define "main"}}
     <div class="swims-list">
+        <div class="table-hint">
+            <i class="fas fa-hand-pointer"></i>
+            <span>Tap or click a row to edit a swim.</span>
+        </div>
         <div class="month-table">
             <table>
                 <thead>
@@ -63,10 +67,10 @@
                 </thead>
                 <tbody>
                 {{range .Data.Swims}}
-                    {{template "swim-row" .}}
+                    {{template "swim-row" (withPartial $ .)}}
                 {{end}}
                 {{if .Data.LoadMore}}
-                    {{template "load-more-button" .Data.LoadMore}}
+                    {{template "load-more-button" (withPartial $ .Data.LoadMore)}}
                 {{end}}
                 </tbody>
             </table>

@@ -1,10 +1,11 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
 	"github.com/rockstaedt/swimmate/ui"
-	"net/http"
 )
 
 func (app *application) routes() http.Handler {
@@ -32,6 +33,10 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodGet, "/yearly-figures", protected.ThenFunc(app.yearlyFigures))
 	router.Handler(http.MethodGet, "/swim", protected.ThenFunc(app.createSwim))
 	router.Handler(http.MethodPost, "/swim", protected.ThenFunc(app.storeSwim))
+	router.Handler(http.MethodGet, "/swims/edit/:id", protected.ThenFunc(app.editSwim))
+	router.Handler(http.MethodPost, "/swims/edit/:id", protected.ThenFunc(app.updateSwim))
+	router.Handler(http.MethodPut, "/swims/edit/:id", protected.ThenFunc(app.updateSwim))
+	router.Handler(http.MethodDelete, "/swims/:id", protected.ThenFunc(app.deleteSwim))
 
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 

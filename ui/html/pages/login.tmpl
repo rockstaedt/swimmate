@@ -5,12 +5,12 @@
             <div class="login-header">
                 <i class="fas fa-swimming-pool"></i>
                 <h2>Welcome to SwimMate</h2>
-                <p>Track your swimming journey</p>
             </div>
             <form class="form" action="/authenticate" method="POST">
                 <div class="form-group">
                     <label for="username">Username</label>
-                    <input type="text" id="username" name="username" placeholder="Enter your username" required autofocus>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required
+                           autofocus>
                 </div>
 
                 <div class="form-group">
@@ -22,6 +22,11 @@
                     <i class="fas fa-sign-in-alt"></i> Sign In
                 </button>
             </form>
+            <div class="login-footer">
+                <a href="/about" class="about-link">
+                    <i class="fas fa-info-circle"></i> About SwimMate
+                </a>
+            </div>
         </div>
     </div>
 {{end}}

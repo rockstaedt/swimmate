@@ -47,9 +47,12 @@ type SwimFigures struct {
 
 type SwimModel interface {
 	Get() (*Swim, error)
+	GetByID(userId int, swimId int) (*Swim, error)
 	GetAll(userId int) ([]*Swim, error)
 	GetPaginated(userId int, limit int, offset int, sort string, direction string) ([]*Swim, error)
 	Insert(date time.Time, distanceM int, assessment int, userId int) error
+	Update(id int, userId int, date time.Time, distanceM int, assessment int) error
+	Delete(id int, userId int) error
 	Summarize(userId int) *SwimSummary
 }
 
@@ -62,13 +65,13 @@ func NewSwimModel(db *sql.DB) SwimModel {
 }
 
 func (sw *swimModel) Get() (*Swim, error) {
-	stmt := `SELECT date, distance_m, assessment FROM swims ORDER BY date ASC LIMIT 1;`
+	stmt := `SELECT id, date, distance_m, assessment FROM swims ORDER BY date ASC LIMIT 1;`
 
 	row := sw.DB.QueryRow(stmt)
 
 	var s Swim
 
-	err := row.Scan(&s.Date, &s.DistanceM, &s.Assessment)
+	err := row.Scan(&s.Id, &s.Date, &s.DistanceM, &s.Assessment)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return &Swim{}, ErrNoRecord
@@ -80,8 +83,25 @@ func (sw *swimModel) Get() (*Swim, error) {
 	return &s, nil
 }
 
+func (sw *swimModel) GetByID(userId int, swimId int) (*Swim, error) {
+	stmt := `SELECT id, date, distance_m, assessment FROM swims WHERE id = $1 AND user_id = $2;`
+
+	row := sw.DB.QueryRow(stmt, swimId, userId)
+
+	var s Swim
+	err := row.Scan(&s.Id, &s.Date, &s.DistanceM, &s.Assessment)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return &Swim{}, ErrNoRecord
+		}
+		return &Swim{}, err
+	}
+
+	return &s, nil
+}
+
 func (sw *swimModel) GetAll(userId int) ([]*Swim, error) {
-	stmt := `SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY date ASC;`
+	stmt := `SELECT id, date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY date ASC;`
 
 	rows, err := sw.DB.Query(stmt, userId)
 	if err != nil {
@@ -98,7 +118,7 @@ func (sw *swimModel) GetAll(userId int) ([]*Swim, error) {
 	var swims []*Swim
 	for rows.Next() {
 		var s Swim
-		errScan := rows.Scan(&s.Date, &s.DistanceM, &s.Assessment)
+		errScan := rows.Scan(&s.Id, &s.Date, &s.DistanceM, &s.Assessment)
 		if errScan != nil {
 			return nil, errScan
 		}
@@ -149,7 +169,7 @@ func (sw *swimModel) GetPaginated(userId int, limit int, offset int, sort string
 	sortDirection := sanitizeSortDirection(direction)
 
 	stmt := fmt.Sprintf(
-		`SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3;`,
+		`SELECT id, date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3;`,
 		sortColumn,
 		sortDirection,
 	)
@@ -169,7 +189,7 @@ func (sw *swimModel) GetPaginated(userId int, limit int, offset int, sort string
 	var swims []*Swim
 	for rows.Next() {
 		var s Swim
-		errScan := rows.Scan(&s.Date, &s.DistanceM, &s.Assessment)
+		errScan := rows.Scan(&s.Id, &s.Date, &s.DistanceM, &s.Assessment)
 		if errScan != nil {
 			return nil, errScan
 		}
@@ -190,6 +210,46 @@ func (sw *swimModel) Insert(date time.Time, distanceM int, assessment int, userI
 	_, err := sw.DB.Exec(stmt, date, distanceM, assessment, userId)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (sw *swimModel) Update(id int, userId int, date time.Time, distanceM int, assessment int) error {
+	stmt := `UPDATE swims SET date = $1, distance_m = $2, assessment = $3 WHERE id = $4 AND user_id = $5;`
+
+	result, err := sw.DB.Exec(stmt, date, distanceM, assessment, id, userId)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrNoRecord
+	}
+
+	return nil
+}
+
+func (sw *swimModel) Delete(id int, userId int) error {
+	stmt := `DELETE FROM swims WHERE id = $1 AND user_id = $2;`
+
+	result, err := sw.DB.Exec(stmt, id, userId)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrNoRecord
 	}
 
 	return nil

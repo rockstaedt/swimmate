@@ -106,6 +106,89 @@ func TestSwimModelInsert(t *testing.T) {
 	}
 }
 
+func TestSwimModelUpdate(t *testing.T) {
+	tests := []struct {
+		name        string
+		userId      int
+		swimId      int
+		date        time.Time
+		distanceM   int
+		assessment  int
+		setupMock   func(mock sqlmock.Sqlmock)
+		expectError bool
+		errorType   error
+	}{
+		{
+			name:       "successful update",
+			userId:     1,
+			swimId:     10,
+			date:       time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC),
+			distanceM:  2000,
+			assessment: 2,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("UPDATE swims SET date = \\$1, distance_m = \\$2, assessment = \\$3 WHERE id = \\$4 AND user_id = \\$5").
+					WithArgs(time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC), 2000, 2, 10, 1).
+					WillReturnResult(sqlmock.NewResult(0, 1))
+			},
+		},
+		{
+			name:       "no rows updated",
+			userId:     1,
+			swimId:     999,
+			date:       time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC),
+			distanceM:  1000,
+			assessment: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("UPDATE swims SET date = \\$1, distance_m = \\$2, assessment = \\$3 WHERE id = \\$4 AND user_id = \\$5").
+					WithArgs(time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC), 1000, 1, 999, 1).
+					WillReturnResult(sqlmock.NewResult(0, 0))
+			},
+			expectError: true,
+			errorType:   ErrNoRecord,
+		},
+		{
+			name:       "database error",
+			userId:     1,
+			swimId:     5,
+			date:       time.Date(2024, 4, 1, 0, 0, 0, 0, time.UTC),
+			distanceM:  1500,
+			assessment: 0,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("UPDATE swims SET date = \\$1, distance_m = \\$2, assessment = \\$3 WHERE id = \\$4 AND user_id = \\$5").
+					WithArgs(time.Date(2024, 4, 1, 0, 0, 0, 0, time.UTC), 1500, 0, 5, 1).
+					WillReturnError(errors.New("update failed"))
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db, mock, err := sqlmock.New()
+			assert.NoError(t, err)
+			defer func() {
+				_ = db.Close()
+			}()
+
+			tt.setupMock(mock)
+
+			model := NewSwimModel(db)
+			err = model.Update(tt.swimId, tt.userId, tt.date, tt.distanceM, tt.assessment)
+
+			if tt.expectError {
+				assert.Error(t, err)
+				if tt.errorType != nil {
+					assert.ErrorIs(t, err, tt.errorType)
+				}
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
 func TestSwimModelGet(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -117,9 +200,9 @@ func TestSwimModelGet(t *testing.T) {
 		{
 			name: "successful get earliest swim",
 			setupMock: func(mock sqlmock.Sqlmock) {
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
-					AddRow(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), 1500, 2)
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims ORDER BY date ASC LIMIT 1").
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"}).
+					AddRow(1, time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), 1500, 2)
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims ORDER BY date ASC LIMIT 1").
 					WillReturnRows(rows)
 			},
 			expectError: false,
@@ -132,7 +215,7 @@ func TestSwimModelGet(t *testing.T) {
 		{
 			name: "no records found",
 			setupMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims ORDER BY date ASC LIMIT 1").
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims ORDER BY date ASC LIMIT 1").
 					WillReturnError(sql.ErrNoRows)
 			},
 			expectError:  true,
@@ -142,7 +225,7 @@ func TestSwimModelGet(t *testing.T) {
 		{
 			name: "database error",
 			setupMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims ORDER BY date ASC LIMIT 1").
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims ORDER BY date ASC LIMIT 1").
 					WillReturnError(errors.New("connection timeout"))
 			},
 			expectError:  true,
@@ -181,6 +264,90 @@ func TestSwimModelGet(t *testing.T) {
 	}
 }
 
+func TestSwimModelGetByID(t *testing.T) {
+	tests := []struct {
+		name         string
+		userId       int
+		swimId       int
+		setupMock    func(mock sqlmock.Sqlmock)
+		expectError  bool
+		expectedSwim *Swim
+		errorType    error
+	}{
+		{
+			name:   "successful fetch",
+			userId: 1,
+			swimId: 10,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"}).
+					AddRow(10, time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC), 1800, 1)
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(10, 1).
+					WillReturnRows(rows)
+			},
+			expectedSwim: &Swim{
+				Id:         10,
+				Date:       time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC),
+				DistanceM:  1800,
+				Assessment: 1,
+			},
+		},
+		{
+			name:   "not found",
+			userId: 1,
+			swimId: 999,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(999, 1).
+					WillReturnError(sql.ErrNoRows)
+			},
+			expectError:  true,
+			expectedSwim: &Swim{},
+			errorType:    ErrNoRecord,
+		},
+		{
+			name:   "database error",
+			userId: 1,
+			swimId: 5,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(5, 1).
+					WillReturnError(errors.New("query failed"))
+			},
+			expectError:  true,
+			expectedSwim: &Swim{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db, mock, err := sqlmock.New()
+			assert.NoError(t, err)
+			defer func() {
+				_ = db.Close()
+			}()
+
+			tt.setupMock(mock)
+
+			model := NewSwimModel(db)
+			swim, err := model.GetByID(tt.userId, tt.swimId)
+
+			if tt.expectError {
+				assert.Error(t, err)
+				if tt.errorType != nil {
+					assert.ErrorIs(t, err, tt.errorType)
+				}
+				assert.Equal(t, tt.expectedSwim, swim)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedSwim, swim)
+			}
+
+			assert.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
 func TestSwimModelGetAll(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -194,11 +361,11 @@ func TestSwimModelGetAll(t *testing.T) {
 			name:   "successful get all swims",
 			userId: 1,
 			setupMock: func(mock sqlmock.Sqlmock) {
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
-					AddRow(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), 1000, 1).
-					AddRow(time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC), 1500, 2).
-					AddRow(time.Date(2024, 1, 3, 0, 0, 0, 0, time.UTC), 2000, 2)
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"}).
+					AddRow(1, time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), 1000, 1).
+					AddRow(2, time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC), 1500, 2).
+					AddRow(3, time.Date(2024, 1, 3, 0, 0, 0, 0, time.UTC), 2000, 2)
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
 					WithArgs(1).
 					WillReturnRows(rows)
 			},
@@ -213,8 +380,8 @@ func TestSwimModelGetAll(t *testing.T) {
 			name:   "empty result set",
 			userId: 1,
 			setupMock: func(mock sqlmock.Sqlmock) {
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"})
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"})
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
 					WithArgs(1).
 					WillReturnRows(rows)
 			},
@@ -225,7 +392,7 @@ func TestSwimModelGetAll(t *testing.T) {
 			name:   "database error on query",
 			userId: 1,
 			setupMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
 					WithArgs(1).
 					WillReturnError(errors.New("query execution failed"))
 			},
@@ -237,10 +404,10 @@ func TestSwimModelGetAll(t *testing.T) {
 			name:   "scan error on rows",
 			userId: 1,
 			setupMock: func(mock sqlmock.Sqlmock) {
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
-					AddRow(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), 1000, 1).
-					AddRow("invalid-date", 1500, 2) // Invalid date will cause scan error
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"}).
+					AddRow(1, time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), 1000, 1).
+					AddRow(2, "invalid-date", 1500, 2) // Invalid date will cause scan error
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
 					WithArgs(1).
 					WillReturnRows(rows)
 			},
@@ -251,10 +418,10 @@ func TestSwimModelGetAll(t *testing.T) {
 			name:   "ordering verification - dates in ascending order",
 			userId: 5,
 			setupMock: func(mock sqlmock.Sqlmock) {
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
-					AddRow(time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC), 500, 1).
-					AddRow(time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC), 750, 2)
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"}).
+					AddRow(1, time.Date(2023, 12, 1, 0, 0, 0, 0, time.UTC), 500, 1).
+					AddRow(2, time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC), 750, 2)
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
 					WithArgs(5).
 					WillReturnRows(rows)
 			},
@@ -321,13 +488,13 @@ func TestSwimModelGetPaginated(t *testing.T) {
 			direction: SortDirectionDesc,
 			setupMock: func(mock sqlmock.Sqlmock) {
 				query := regexp.QuoteMeta(fmt.Sprintf(
-					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					"SELECT id, date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
 					sortColumnMap[SwimSortDate],
 					"DESC",
 				))
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
-					AddRow(time.Date(2024, 1, 3, 0, 0, 0, 0, time.UTC), 2000, 2).
-					AddRow(time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC), 1500, 2)
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"}).
+					AddRow(1, time.Date(2024, 1, 3, 0, 0, 0, 0, time.UTC), 2000, 2).
+					AddRow(2, time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC), 1500, 2)
 				mock.ExpectQuery(query).
 					WithArgs(1, 2, 0).
 					WillReturnRows(rows)
@@ -347,12 +514,12 @@ func TestSwimModelGetPaginated(t *testing.T) {
 			direction: SortDirectionDesc,
 			setupMock: func(mock sqlmock.Sqlmock) {
 				query := regexp.QuoteMeta(fmt.Sprintf(
-					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					"SELECT id, date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
 					sortColumnMap[SwimSortDate],
 					"DESC",
 				))
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
-					AddRow(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), 1000, 1)
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"}).
+					AddRow(3, time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), 1000, 1)
 				mock.ExpectQuery(query).
 					WithArgs(1, 2, 2).
 					WillReturnRows(rows)
@@ -371,11 +538,11 @@ func TestSwimModelGetPaginated(t *testing.T) {
 			direction: SortDirectionDesc,
 			setupMock: func(mock sqlmock.Sqlmock) {
 				query := regexp.QuoteMeta(fmt.Sprintf(
-					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					"SELECT id, date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
 					sortColumnMap[SwimSortDate],
 					"DESC",
 				))
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"})
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"})
 				mock.ExpectQuery(query).
 					WithArgs(1, 20, 100).
 					WillReturnRows(rows)
@@ -392,14 +559,14 @@ func TestSwimModelGetPaginated(t *testing.T) {
 			direction: SortDirectionDesc,
 			setupMock: func(mock sqlmock.Sqlmock) {
 				query := regexp.QuoteMeta(fmt.Sprintf(
-					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					"SELECT id, date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
 					sortColumnMap[SwimSortDate],
 					"DESC",
 				))
 				// Simulate exactly 20 records
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"})
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"})
 				for i := 20; i > 0; i-- {
-					rows.AddRow(time.Date(2024, 1, i, 0, 0, 0, 0, time.UTC), 1000*i, 2)
+					rows.AddRow(i, time.Date(2024, 1, i, 0, 0, 0, 0, time.UTC), 1000*i, 2)
 				}
 				mock.ExpectQuery(query).
 					WithArgs(1, 20, 0).
@@ -427,7 +594,7 @@ func TestSwimModelGetPaginated(t *testing.T) {
 			direction: SortDirectionDesc,
 			setupMock: func(mock sqlmock.Sqlmock) {
 				query := regexp.QuoteMeta(fmt.Sprintf(
-					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					"SELECT id, date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
 					sortColumnMap[SwimSortDate],
 					"DESC",
 				))
@@ -448,14 +615,14 @@ func TestSwimModelGetPaginated(t *testing.T) {
 			direction: SortDirectionDesc,
 			setupMock: func(mock sqlmock.Sqlmock) {
 				query := regexp.QuoteMeta(fmt.Sprintf(
-					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					"SELECT id, date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
 					sortColumnMap[SwimSortDate],
 					"DESC",
 				))
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
-					AddRow(time.Date(2024, 12, 31, 0, 0, 0, 0, time.UTC), 3000, 2).
-					AddRow(time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC), 2000, 2).
-					AddRow(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), 1000, 1)
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"}).
+					AddRow(1, time.Date(2024, 12, 31, 0, 0, 0, 0, time.UTC), 3000, 2).
+					AddRow(2, time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC), 2000, 2).
+					AddRow(3, time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), 1000, 1)
 				mock.ExpectQuery(query).
 					WithArgs(2, 3, 0).
 					WillReturnRows(rows)
@@ -476,11 +643,11 @@ func TestSwimModelGetPaginated(t *testing.T) {
 			direction: SortDirectionAsc,
 			setupMock: func(mock sqlmock.Sqlmock) {
 				query := regexp.QuoteMeta(fmt.Sprintf(
-					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					"SELECT id, date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
 					sortColumnMap[SwimSortDistance],
 					"ASC",
 				))
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"})
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"})
 				mock.ExpectQuery(query).
 					WithArgs(1, 5, 0).
 					WillReturnRows(rows)
@@ -495,11 +662,11 @@ func TestSwimModelGetPaginated(t *testing.T) {
 			direction: "weird",
 			setupMock: func(mock sqlmock.Sqlmock) {
 				query := regexp.QuoteMeta(fmt.Sprintf(
-					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					"SELECT id, date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
 					sortColumnMap[SwimSortDate],
 					"DESC",
 				))
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"})
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"})
 				mock.ExpectQuery(query).
 					WithArgs(1, 5, 0).
 					WillReturnRows(rows)
@@ -514,11 +681,11 @@ func TestSwimModelGetPaginated(t *testing.T) {
 			direction: strings.ToUpper(SortDirectionAsc),
 			setupMock: func(mock sqlmock.Sqlmock) {
 				query := regexp.QuoteMeta(fmt.Sprintf(
-					"SELECT date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
+					"SELECT id, date, distance_m, assessment FROM swims WHERE user_id = $1 ORDER BY %s %s LIMIT $2 OFFSET $3",
 					sortColumnMap[SwimSortDate],
 					"ASC",
 				))
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"})
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"})
 				mock.ExpectQuery(query).
 					WithArgs(1, 5, 0).
 					WillReturnRows(rows)
@@ -570,8 +737,8 @@ func TestSwimModelSummarize(t *testing.T) {
 			name:   "empty dataset",
 			userId: 1,
 			setupMock: func(mock sqlmock.Sqlmock) {
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"})
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"})
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
 					WithArgs(1).
 					WillReturnRows(rows)
 			},
@@ -589,9 +756,9 @@ func TestSwimModelSummarize(t *testing.T) {
 			name:   "single swim from past year",
 			userId: 1,
 			setupMock: func(mock sqlmock.Sqlmock) {
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
-					AddRow(time.Date(2020, 6, 15, 0, 0, 0, 0, time.UTC), 1500, 2)
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"}).
+					AddRow(1, time.Date(2020, 6, 15, 0, 0, 0, 0, time.UTC), 1500, 2)
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
 					WithArgs(1).
 					WillReturnRows(rows)
 			},
@@ -627,11 +794,11 @@ func TestSwimModelSummarize(t *testing.T) {
 			name:   "multiple swims across different months in same year",
 			userId: 1,
 			setupMock: func(mock sqlmock.Sqlmock) {
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
-					AddRow(time.Date(2020, 1, 10, 0, 0, 0, 0, time.UTC), 1000, 1).
-					AddRow(time.Date(2020, 3, 15, 0, 0, 0, 0, time.UTC), 1500, 2).
-					AddRow(time.Date(2020, 3, 20, 0, 0, 0, 0, time.UTC), 2000, 2)
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"}).
+					AddRow(1, time.Date(2020, 1, 10, 0, 0, 0, 0, time.UTC), 1000, 1).
+					AddRow(2, time.Date(2020, 3, 15, 0, 0, 0, 0, time.UTC), 1500, 2).
+					AddRow(3, time.Date(2020, 3, 20, 0, 0, 0, 0, time.UTC), 2000, 2)
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
 					WithArgs(1).
 					WillReturnRows(rows)
 			},
@@ -667,11 +834,11 @@ func TestSwimModelSummarize(t *testing.T) {
 			name:   "multiple swims across different years",
 			userId: 1,
 			setupMock: func(mock sqlmock.Sqlmock) {
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
-					AddRow(time.Date(2019, 12, 25, 0, 0, 0, 0, time.UTC), 1000, 1).
-					AddRow(time.Date(2020, 1, 5, 0, 0, 0, 0, time.UTC), 1500, 2).
-					AddRow(time.Date(2021, 6, 15, 0, 0, 0, 0, time.UTC), 2000, 2)
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"}).
+					AddRow(1, time.Date(2019, 12, 25, 0, 0, 0, 0, time.UTC), 1000, 1).
+					AddRow(2, time.Date(2020, 1, 5, 0, 0, 0, 0, time.UTC), 1500, 2).
+					AddRow(3, time.Date(2021, 6, 15, 0, 0, 0, 0, time.UTC), 2000, 2)
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
 					WithArgs(1).
 					WillReturnRows(rows)
 			},
@@ -742,9 +909,9 @@ func TestSwimModelSummarize(t *testing.T) {
 			userId: 1,
 			setupMock: func(mock sqlmock.Sqlmock) {
 				now := time.Now()
-				rows := sqlmock.NewRows([]string{"date", "distance_m", "assessment"}).
-					AddRow(now, 1500, 2)
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+				rows := sqlmock.NewRows([]string{"id", "date", "distance_m", "assessment"}).
+					AddRow(1, now, 1500, 2)
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
 					WithArgs(1).
 					WillReturnRows(rows)
 			},
@@ -774,7 +941,7 @@ func TestSwimModelSummarize(t *testing.T) {
 			name:   "database error returns empty summary",
 			userId: 1,
 			setupMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
+				mock.ExpectQuery("SELECT id, date, distance_m, assessment FROM swims WHERE user_id = \\$1 ORDER BY date ASC").
 					WithArgs(1).
 					WillReturnError(errors.New("database error"))
 			},
@@ -912,4 +1079,124 @@ func TestSwimSummaryHelperMethods(t *testing.T) {
 		assert.Equal(t, 2, monthMap.Count)
 		assert.Equal(t, 2500, monthMap.DistanceM)
 	})
+}
+
+func TestSwimModelDelete(t *testing.T) {
+	tests := []struct {
+		name        string
+		swimId      int
+		userId      int
+		setupMock   func(mock sqlmock.Sqlmock)
+		expectError bool
+		errorType   error
+	}{
+		{
+			name:   "successful delete",
+			swimId: 5,
+			userId: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("DELETE FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(5, 1).
+					WillReturnResult(sqlmock.NewResult(0, 1))
+			},
+			expectError: false,
+		},
+		{
+			name:   "swim not found",
+			swimId: 999,
+			userId: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("DELETE FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(999, 1).
+					WillReturnResult(sqlmock.NewResult(0, 0))
+			},
+			expectError: true,
+			errorType:   ErrNoRecord,
+		},
+		{
+			name:   "swim belongs to different user",
+			swimId: 5,
+			userId: 2,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("DELETE FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(5, 2).
+					WillReturnResult(sqlmock.NewResult(0, 0))
+			},
+			expectError: true,
+			errorType:   ErrNoRecord,
+		},
+		{
+			name:   "database error on delete",
+			swimId: 5,
+			userId: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("DELETE FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(5, 1).
+					WillReturnError(errors.New("database connection lost"))
+			},
+			expectError: true,
+		},
+		{
+			name:   "delete with zero swim ID",
+			swimId: 0,
+			userId: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("DELETE FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(0, 1).
+					WillReturnResult(sqlmock.NewResult(0, 0))
+			},
+			expectError: true,
+			errorType:   ErrNoRecord,
+		},
+		{
+			name:   "delete with negative swim ID",
+			swimId: -5,
+			userId: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("DELETE FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(-5, 1).
+					WillReturnResult(sqlmock.NewResult(0, 0))
+			},
+			expectError: true,
+			errorType:   ErrNoRecord,
+		},
+		{
+			name:   "delete with zero user ID",
+			swimId: 5,
+			userId: 0,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("DELETE FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(5, 0).
+					WillReturnResult(sqlmock.NewResult(0, 0))
+			},
+			expectError: true,
+			errorType:   ErrNoRecord,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db, mock, err := sqlmock.New()
+			assert.NoError(t, err)
+			defer func() {
+				_ = db.Close()
+			}()
+
+			tt.setupMock(mock)
+
+			model := NewSwimModel(db)
+			err = model.Delete(tt.swimId, tt.userId)
+
+			if tt.expectError {
+				assert.Error(t, err)
+				if tt.errorType != nil {
+					assert.ErrorIs(t, err, tt.errorType)
+				}
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
 }

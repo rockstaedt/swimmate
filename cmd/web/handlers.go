@@ -2,11 +2,14 @@ package main
 
 import (
 	"errors"
-	"github.com/rockstaedt/swimmate/internal/models"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/julienschmidt/httprouter"
+	"github.com/rockstaedt/swimmate/internal/models"
 )
 
 const (
@@ -20,6 +23,12 @@ type swimsPageData struct {
 	Sort      string
 	Direction string
 	LoadMore  *loadMoreData
+}
+
+type editSwimPageData struct {
+	Swim      *models.Swim
+	Sort      string
+	Direction string
 }
 
 type loadMoreData struct {
@@ -111,6 +120,35 @@ func (app *application) createSwim(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "swim-create.tmpl", app.newTemplateData(r, nil))
 }
 
+func (app *application) editSwim(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	swimID, err := strconv.Atoi(params.ByName("id"))
+	if err != nil || swimID <= 0 {
+		app.notFound(w)
+		return
+	}
+
+	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+	swim, err := app.swims.GetByID(userId, swimID)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			app.notFound(w)
+		} else {
+			app.serverError(w, r, err)
+		}
+		return
+	}
+
+	sort, direction := parseSwimSort(r)
+	data := editSwimPageData{
+		Swim:      swim,
+		Sort:      sort,
+		Direction: direction,
+	}
+
+	app.render(w, r, http.StatusOK, "swim-edit.tmpl", app.newTemplateData(r, data))
+}
+
 func (app *application) swimsList(w http.ResponseWriter, r *http.Request) {
 	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
 	sort, direction := parseSwimSort(r)
@@ -150,13 +188,14 @@ func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		partialPageData := &swimsPageData{Sort: sort, Direction: direction}
 		for _, swim := range swims {
-			app.renderPartial(w, r, swimsTemplate, "swim-row", swim)
+			app.renderPartial(w, r, swimsTemplate, "swim-row", partialPageData, swim)
 		}
 
 		// Add the new button row or end
 		if loadMore := newLoadMoreData(len(swims) == itemsPerPage, offset+itemsPerPage, sort, direction); loadMore != nil {
-			app.renderPartial(w, r, swimsTemplate, "load-more-button", loadMore)
+			app.renderPartial(w, r, swimsTemplate, "load-more-button", partialPageData, loadMore)
 		}
 		return
 	}
@@ -201,10 +240,20 @@ func (app *application) storeSwim(w http.ResponseWriter, r *http.Request) {
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
+	if distanceM <= 0 {
+		app.logger.Error("invalid distance value")
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
 
 	assessment, err := strconv.Atoi(r.PostForm.Get("assessment"))
 	if err != nil {
 		app.logger.Error(err.Error())
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	if assessment < 0 || assessment > 2 {
+		app.logger.Error("invalid assessment value")
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
@@ -221,17 +270,111 @@ func (app *application) storeSwim(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+func (app *application) updateSwim(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	swimID, err := strconv.Atoi(params.ByName("id"))
+	if err != nil || swimID <= 0 {
+		app.notFound(w)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		app.logger.Error(err.Error())
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	date, err := time.Parse("2006-01-02", r.PostForm.Get("date"))
+	if err != nil {
+		app.logger.Error(err.Error())
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	distanceM, err := strconv.Atoi(r.PostForm.Get("distance_m"))
+	if err != nil {
+		app.logger.Error(err.Error())
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	if distanceM <= 0 {
+		app.logger.Error("invalid distance value")
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	assessment, err := strconv.Atoi(r.PostForm.Get("assessment"))
+	if err != nil {
+		app.logger.Error(err.Error())
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	if assessment < 0 || assessment > 2 {
+		app.logger.Error("invalid assessment value")
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	sort := normalizeSwimSortValue(r.PostForm.Get("sort"))
+	direction := normalizeSortDirectionValue(r.PostForm.Get("direction"))
+
+	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+	err = app.swims.Update(swimID, userId, date, distanceM, assessment)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			app.notFound(w)
+		} else {
+			app.serverError(w, r, err)
+		}
+		return
+	}
+
+	app.sessionManager.Put(r.Context(), "flashText", "Successfully updated!")
+	app.sessionManager.Put(r.Context(), "flashType", "flash-success")
+
+	values := url.Values{}
+	values.Set("sort", sort)
+	values.Set("direction", direction)
+
+	http.Redirect(w, r, "/swims?"+values.Encode(), http.StatusSeeOther)
+}
+
+func (app *application) deleteSwim(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	swimID, err := strconv.Atoi(params.ByName("id"))
+	if err != nil || swimID <= 0 {
+		app.notFound(w)
+		return
+	}
+
+	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+	err = app.swims.Delete(swimID, userId)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			app.notFound(w)
+		} else {
+			app.serverError(w, r, err)
+		}
+		return
+	}
+
+	app.sessionManager.Put(r.Context(), "flashText", "Successfully deleted!")
+	app.sessionManager.Put(r.Context(), "flashType", "flash-success")
+
+	sort := normalizeSwimSortValue(r.URL.Query().Get("sort"))
+	direction := normalizeSortDirectionValue(r.URL.Query().Get("direction"))
+
+	values := url.Values{}
+	values.Set("sort", sort)
+	values.Set("direction", direction)
+
+	http.Redirect(w, r, "/swims?"+values.Encode(), http.StatusSeeOther)
+}
+
 func parseSwimSort(r *http.Request) (string, string) {
-	sort := strings.ToLower(r.URL.Query().Get("sort"))
-	if sort != models.SwimSortDate && sort != models.SwimSortDistance && sort != models.SwimSortAssessment {
-		sort = models.SwimSortDate
-	}
-
-	direction := strings.ToLower(r.URL.Query().Get("direction"))
-	if direction != models.SortDirectionAsc && direction != models.SortDirectionDesc {
-		direction = models.SortDirectionDesc
-	}
-
+	sort := normalizeSwimSortValue(r.URL.Query().Get("sort"))
+	direction := normalizeSortDirectionValue(r.URL.Query().Get("direction"))
 	return sort, direction
 }
 
@@ -245,4 +388,20 @@ func newLoadMoreData(hasMore bool, nextOffset int, sort, direction string) *load
 		Sort:       sort,
 		Direction:  direction,
 	}
+}
+
+func normalizeSwimSortValue(sort string) string {
+	sort = strings.ToLower(sort)
+	if sort != models.SwimSortDate && sort != models.SwimSortDistance && sort != models.SwimSortAssessment {
+		return models.SwimSortDate
+	}
+	return sort
+}
+
+func normalizeSortDirectionValue(direction string) string {
+	direction = strings.ToLower(direction)
+	if direction != models.SortDirectionAsc && direction != models.SortDirectionDesc {
+		return models.SortDirectionDesc
+	}
+	return direction
 }

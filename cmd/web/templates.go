@@ -13,6 +13,7 @@ import (
 type templateData struct {
 	Version         string
 	Data            interface{}
+	Partial         interface{}
 	Flash           *Flash
 	IsAuthenticated bool
 	CurrentDate     string
@@ -75,6 +76,7 @@ var functions = template.FuncMap{
 	"atoi":         atoi,
 	"slice":        slice,
 	"monthAbbr":    monthAbbr,
+	"withPartial":  withPartial,
 }
 
 func numberFormat(n int) string {
@@ -156,6 +158,11 @@ func monthAbbr(month int) string {
 	return abbrs[month-1]
 }
 
+func withPartial(td templateData, partial interface{}) templateData {
+	td.Partial = partial
+	return td
+}
+
 func newTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
 
@@ -167,7 +174,7 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	for _, page := range pages {
 		name := filepath.Base(page)
 		patterns := []string{"html/base.tmpl", page}
-		
+
 		// Add partials if they exist
 		partials, err := fs.Glob(ui.Files, "html/partials/*.tmpl")
 		if err != nil {
