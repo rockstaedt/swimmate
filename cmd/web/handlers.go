@@ -311,6 +311,7 @@ func (app *application) updateSwim(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.sessionManager.Put(r.Context(), "flashText", "Successfully updated!")
+	app.sessionManager.Put(r.Context(), "flashType", "flash-success")
 
 	values := url.Values{}
 	values.Set("sort", sort)
