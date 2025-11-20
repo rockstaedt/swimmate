@@ -15,6 +15,10 @@ are expected.
 - Yearly breakdown charts for spotting progress across months
 - Authenticated workflow with session-backed login
 
+## Preview
+
+<img src="docs/screenshots/dashboard-view.png" alt="SwimMate dashboard preview" width="320" />
+
 ## Technology Stack
 
 - **Language:** Go 1.25
@@ -108,9 +112,5 @@ and deployment to the production host.
 
 ## Contributing
 
-1. Fork or create a branch off `main`
-2. Make focused changes (keep commits small and scoped)
-3. Run `go test ./...`, `go vet ./...`, and `golangci-lint run`
-4. Open a pull request describing the change and any relevant screenshots
-
-Bug reports and feature requests are welcome via GitHub Issues.
+Contributions are welcome! Open an issue for ideas, questions, or bug reports, and submit pull requests when you are
+ready to collaborate on improvements.
