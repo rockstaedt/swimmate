@@ -66,10 +66,10 @@
                 </thead>
                 <tbody>
                 {{range .Data.Swims}}
-                    {{template "swim-row" .}}
+                    {{template "swim-row" (withPartial $ .)}}
                 {{end}}
                 {{if .Data.LoadMore}}
-                    {{template "load-more-button" .Data.LoadMore}}
+                    {{template "load-more-button" (withPartial $ .Data.LoadMore)}}
                 {{end}}
                 </tbody>
             </table>

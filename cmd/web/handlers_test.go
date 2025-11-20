@@ -410,7 +410,7 @@ func TestSwimsMore(t *testing.T) {
 
 			app.templateCache["swims.tmpl"] = createTestTemplate("swims.tmpl", `
 				{{define "base"}}Swims{{end}}
-				{{define "swim-row"}}<tr>{{.Swim.DistanceM}}</tr>{{end}}
+				{{define "swim-row"}}<tr>{{.Partial.DistanceM}}</tr>{{end}}
 				{{define "load-more-button"}}<button>Load More</button>{{end}}
 			`)
 

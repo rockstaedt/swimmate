@@ -196,24 +196,27 @@ func TestRenderPartial(t *testing.T) {
 		setupApp     func() *application
 		templateName string
 		partialName  string
-		data         interface{}
+		pageData     interface{}
+		partialData  interface{}
 		expectedBody string
 		shouldError  bool
 	}{
 		{
 			name: "successful partial render",
 			setupApp: func() *application {
-				tmpl := template.Must(template.New("list.tmpl").Parse(`{{define "item"}}<li>{{.}}</li>{{end}}`))
+				tmpl := template.Must(template.New("list.tmpl").Parse(`{{define "item"}}<li>{{.Partial}}</li>{{end}}`))
 				return &application{
 					templateCache: map[string]*template.Template{
 						"list.tmpl": tmpl,
 					},
-					logger: testutils.NewTestLogger(),
+					logger:         testutils.NewTestLogger(),
+					sessionManager: testutils.NewTestSessionManager(),
 				}
 			},
 			templateName: "list.tmpl",
 			partialName:  "item",
-			data:         "Test Item",
+			pageData:     nil,
+			partialData:  "Test Item",
 			expectedBody: "<li>Test Item</li>",
 			shouldError:  false,
 		},
@@ -221,30 +224,34 @@ func TestRenderPartial(t *testing.T) {
 			name: "template not found",
 			setupApp: func() *application {
 				return &application{
-					templateCache: map[string]*template.Template{},
-					logger:        testutils.NewTestLogger(),
+					templateCache:  map[string]*template.Template{},
+					logger:         testutils.NewTestLogger(),
+					sessionManager: testutils.NewTestSessionManager(),
 				}
 			},
 			templateName: "nonexistent.tmpl",
 			partialName:  "item",
-			data:         "Test",
+			pageData:     nil,
+			partialData:  "Test",
 			expectedBody: "Internal Server Error",
 			shouldError:  true,
 		},
 		{
 			name: "partial not found",
 			setupApp: func() *application {
-				tmpl := template.Must(template.New("list.tmpl").Parse(`{{define "item"}}<li>{{.}}</li>{{end}}`))
+				tmpl := template.Must(template.New("list.tmpl").Parse(`{{define "item"}}<li>{{.Partial}}</li>{{end}}`))
 				return &application{
 					templateCache: map[string]*template.Template{
 						"list.tmpl": tmpl,
 					},
-					logger: testutils.NewTestLogger(),
+					logger:         testutils.NewTestLogger(),
+					sessionManager: testutils.NewTestSessionManager(),
 				}
 			},
 			templateName: "list.tmpl",
 			partialName:  "nonexistent",
-			data:         "Test",
+			pageData:     nil,
+			partialData:  "Test",
 			expectedBody: "Internal Server Error",
 			shouldError:  true,
 		},
@@ -255,8 +262,10 @@ func TestRenderPartial(t *testing.T) {
 			app := tt.setupApp()
 			rr := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/test", nil)
+			ctx, _ := app.sessionManager.Load(r.Context(), "")
+			r = r.WithContext(ctx)
 
-			app.renderPartial(rr, r, tt.templateName, tt.partialName, tt.data)
+			app.renderPartial(rr, r, tt.templateName, tt.partialName, tt.pageData, tt.partialData)
 
 			assert.Contains(t, rr.Body.String(), tt.expectedBody)
 		})
@@ -265,10 +274,10 @@ func TestRenderPartial(t *testing.T) {
 
 func TestIsAuthenticated(t *testing.T) {
 	tests := []struct {
-		name          string
-		setupRequest  func() *http.Request
-		setupSession  func(sessionManager *scs.SessionManager, r *http.Request)
-		expected      bool
+		name         string
+		setupRequest func() *http.Request
+		setupSession func(sessionManager *scs.SessionManager, r *http.Request)
+		expected     bool
 	}{
 		{
 			name: "authenticated user",

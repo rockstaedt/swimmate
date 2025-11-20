@@ -2,13 +2,14 @@ package main
 
 import (
 	"errors"
-	"github.com/julienschmidt/httprouter"
-	"github.com/rockstaedt/swimmate/internal/models"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/julienschmidt/httprouter"
+	"github.com/rockstaedt/swimmate/internal/models"
 )
 
 const (
@@ -17,17 +18,11 @@ const (
 )
 
 type swimsPageData struct {
-	Swims     []*swimRowTemplateData
+	Swims     []*models.Swim
 	Offset    int
 	Sort      string
 	Direction string
 	LoadMore  *loadMoreData
-}
-
-type swimRowTemplateData struct {
-	Swim      *models.Swim
-	Sort      string
-	Direction string
 }
 
 type editSwimPageData struct {
@@ -164,13 +159,8 @@ func (app *application) swimsList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	swimRows := make([]*swimRowTemplateData, len(swims))
-	for i, swim := range swims {
-		swimRows[i] = newSwimRowTemplateData(swim, sort, direction)
-	}
-
 	data := swimsPageData{
-		Swims:     swimRows,
+		Swims:     swims,
 		Offset:    0,
 		Sort:      sort,
 		Direction: direction,
@@ -198,13 +188,14 @@ func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		partialPageData := &swimsPageData{Sort: sort, Direction: direction}
 		for _, swim := range swims {
-			app.renderPartial(w, r, swimsTemplate, "swim-row", newSwimRowTemplateData(swim, sort, direction))
+			app.renderPartial(w, r, swimsTemplate, "swim-row", partialPageData, swim)
 		}
 
 		// Add the new button row or end
 		if loadMore := newLoadMoreData(len(swims) == itemsPerPage, offset+itemsPerPage, sort, direction); loadMore != nil {
-			app.renderPartial(w, r, swimsTemplate, "load-more-button", loadMore)
+			app.renderPartial(w, r, swimsTemplate, "load-more-button", partialPageData, loadMore)
 		}
 		return
 	}
@@ -217,13 +208,8 @@ func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	swimRows := make([]*swimRowTemplateData, len(swims))
-	for i, swim := range swims {
-		swimRows[i] = newSwimRowTemplateData(swim, sort, direction)
-	}
-
 	data := swimsPageData{
-		Swims:     swimRows,
+		Swims:     swims,
 		Offset:    offset,
 		Sort:      sort,
 		Direction: direction,
@@ -348,14 +334,6 @@ func newLoadMoreData(hasMore bool, nextOffset int, sort, direction string) *load
 		NextOffset: nextOffset,
 		Sort:       sort,
 		Direction:  direction,
-	}
-}
-
-func newSwimRowTemplateData(swim *models.Swim, sort, direction string) *swimRowTemplateData {
-	return &swimRowTemplateData{
-		Swim:      swim,
-		Sort:      sort,
-		Direction: direction,
 	}
 }
 

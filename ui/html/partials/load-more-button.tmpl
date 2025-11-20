@@ -1,11 +1,13 @@
 {{define "load-more-button"}}
-<tr id="load-more-row">
-    <td colspan="4" class="load-more-cell">
-        <button hx-get="/swims/more?offset={{.NextOffset}}&sort={{.Sort}}&direction={{.Direction}}"
-                hx-target="#load-more-row"
-                hx-swap="outerHTML">
-            Load More
-        </button>
-    </td>
-</tr>
+    {{$root := .}}
+    {{$loadMore := $root.Partial}}
+    <tr id="load-more-row">
+        <td colspan="4" class="load-more-cell">
+            <button hx-get="/swims/more?offset={{$loadMore.NextOffset}}&sort={{$root.Data.Sort}}&direction={{$root.Data.Direction}}"
+                    hx-target="#load-more-row"
+                    hx-swap="outerHTML">
+                Load More
+            </button>
+        </td>
+    </tr>
 {{end}}
