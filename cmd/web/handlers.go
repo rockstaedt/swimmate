@@ -240,6 +240,11 @@ func (app *application) storeSwim(w http.ResponseWriter, r *http.Request) {
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
+	if distanceM <= 0 {
+		app.logger.Error("invalid distance value")
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
 
 	assessment, err := strconv.Atoi(r.PostForm.Get("assessment"))
 	if err != nil {
@@ -285,6 +290,11 @@ func (app *application) updateSwim(w http.ResponseWriter, r *http.Request) {
 	distanceM, err := strconv.Atoi(r.PostForm.Get("distance_m"))
 	if err != nil {
 		app.logger.Error(err.Error())
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	if distanceM <= 0 {
+		app.logger.Error("invalid distance value")
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
