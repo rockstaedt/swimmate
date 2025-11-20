@@ -2,6 +2,10 @@
 
 {{define "main"}}
     <div class="swims-list">
+        <div class="table-hint">
+            <i class="fas fa-hand-pointer"></i>
+            <span>Tap or click a row to edit a swim.</span>
+        </div>
         <div class="month-table">
             <table>
                 <thead>
@@ -58,9 +62,6 @@
                                 <span class="sort-arrow {{if and (eq $sort "assessment") (eq $direction "desc")}}active{{end}}">↓</span>
                             </span>
                         </a>
-                    </th>
-                    <th class="actions-header">
-                        Actions
                     </th>
                 </tr>
                 </thead>

@@ -2,7 +2,13 @@
     {{$root := .}}
     {{$swim := $root.Partial}}
     {{if $swim}}
-        <tr>
+        {{$editURL := printf "/swims/edit/%d?sort=%s&direction=%s" $swim.Id $root.Data.Sort $root.Data.Direction}}
+        <tr class="swim-row"
+            onclick="window.location.href='{{$editURL}}'"
+            onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href='{{$editURL}}'; }"
+            role="button"
+            tabindex="0"
+            aria-label="Edit swim from {{$swim.Date.Format "2006-01-02"}}">
             <td>{{$swim.Date.Format "2006-01-02"}}</td>
             <td>{{$swim.DistanceM | numberFormat}} m</td>
             <td>
@@ -12,13 +18,6 @@
                 {{range $i := seq (emptyStars $swim.Assessment)}}
                     <i class="far fa-star"></i>
                 {{end}}
-            </td>
-            <td class="swim-actions">
-                <a class="edit-swim-button"
-                   href="/swims/edit/{{$swim.Id}}?sort={{$root.Data.Sort}}&direction={{$root.Data.Direction}}">
-                    <i class="fas fa-pen"></i>
-                    <span>Edit</span>
-                </a>
             </td>
         </tr>
     {{end}}
