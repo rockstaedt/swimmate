@@ -340,6 +340,7 @@ func (app *application) deleteSwim(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.sessionManager.Put(r.Context(), "flashText", "Successfully deleted!")
+	app.sessionManager.Put(r.Context(), "flashType", "flash-success")
 
 	http.Redirect(w, r, "/swims", http.StatusSeeOther)
 }
