@@ -13,7 +13,12 @@
                     </div>
                 </div>
 
-                <form class="form swim-form" method="POST" action="/swims/{{$swim.Id}}">
+                <form class="form swim-form"
+                      method="POST"
+                      action="/swims/edit/{{$swim.Id}}"
+                      hx-put="/swims/edit/{{$swim.Id}}"
+                      hx-target="body"
+                      hx-push-url="true">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="date">Date</label>

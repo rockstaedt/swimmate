@@ -617,7 +617,7 @@ func TestEditSwim(t *testing.T) {
 			app.swims = mockSwims
 
 			rr := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/swims/"+tt.swimID+"/edit", nil)
+			r := httptest.NewRequest(http.MethodGet, "/swims/edit/"+tt.swimID, nil)
 
 			ctx, _ := app.sessionManager.Load(r.Context(), "")
 			app.sessionManager.Put(ctx, "authenticatedUserID", 1)
@@ -707,7 +707,7 @@ func TestUpdateSwim(t *testing.T) {
 
 			rr := httptest.NewRecorder()
 			form := tt.form.Encode()
-			r := httptest.NewRequest(http.MethodPost, "/swims/"+tt.swimID, strings.NewReader(form))
+			r := httptest.NewRequest(http.MethodPost, "/swims/edit/"+tt.swimID, strings.NewReader(form))
 			r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 			ctx, _ := app.sessionManager.Load(r.Context(), "")
