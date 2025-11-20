@@ -37,7 +37,6 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodPost, "/swims/edit/:id", protected.ThenFunc(app.updateSwim))
 	router.Handler(http.MethodPut, "/swims/edit/:id", protected.ThenFunc(app.updateSwim))
 	router.Handler(http.MethodDelete, "/swims/:id", protected.ThenFunc(app.deleteSwim))
-	router.Handler(http.MethodPost, "/swims/delete/:id", protected.ThenFunc(app.deleteSwim))
 
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 
