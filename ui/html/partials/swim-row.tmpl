@@ -1,20 +1,25 @@
 {{define "swim-row"}}
-<tr>
-    <td>{{.Date.Format "2006-01-02"}}</td>
-    <td>{{.DistanceM | numberFormat}} m</td>
-    <td>
-        {{range $i := seq (add .Assessment 1)}}
-            <i class="fas fa-star"></i>
+    {{with $row := .}}
+        {{with $swim := $row.Swim}}
+            <tr>
+                <td>{{$swim.Date.Format "2006-01-02"}}</td>
+                <td>{{$swim.DistanceM | numberFormat}} m</td>
+                <td>
+                    {{range $i := seq (add $swim.Assessment 1)}}
+                        <i class="fas fa-star"></i>
+                    {{end}}
+                    {{range $i := seq (emptyStars $swim.Assessment)}}
+                        <i class="far fa-star"></i>
+                    {{end}}
+                </td>
+                <td class="swim-actions">
+                    <a class="edit-swim-button"
+                       href="/swims/edit/{{$swim.Id}}?sort={{$row.Sort}}&direction={{$row.Direction}}">
+                        <i class="fas fa-pen"></i>
+                        <span>Edit</span>
+                    </a>
+                </td>
+            </tr>
         {{end}}
-        {{range $i := seq (emptyStars .Assessment)}}
-            <i class="far fa-star"></i>
-        {{end}}
-    </td>
-    <td class="swim-actions">
-        <a class="edit-swim-button" href="/swims/edit/{{.Id}}">
-            <i class="fas fa-pen"></i>
-            <span>Edit</span>
-        </a>
-    </td>
-</tr>
+    {{end}}
 {{end}}

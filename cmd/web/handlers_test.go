@@ -410,7 +410,7 @@ func TestSwimsMore(t *testing.T) {
 
 			app.templateCache["swims.tmpl"] = createTestTemplate("swims.tmpl", `
 				{{define "base"}}Swims{{end}}
-				{{define "swim-row"}}<tr>{{.DistanceM}}</tr>{{end}}
+				{{define "swim-row"}}<tr>{{.Swim.DistanceM}}</tr>{{end}}
 				{{define "load-more-button"}}<button>Load More</button>{{end}}
 			`)
 
@@ -636,6 +636,8 @@ func TestUpdateSwim(t *testing.T) {
 		"date":       []string{"2024-02-01"},
 		"distance_m": []string{"2000"},
 		"assessment": []string{"2"},
+		"sort":       []string{models.SwimSortDistance},
+		"direction":  []string{models.SortDirectionAsc},
 	}
 
 	tests := []struct {
@@ -660,7 +662,24 @@ func TestUpdateSwim(t *testing.T) {
 				}
 			},
 			expectedStatus:   http.StatusSeeOther,
-			expectedLocation: "/swims",
+			expectedLocation: "/swims?direction=asc&sort=distance",
+		},
+		{
+			name:   "successful update with missing sort parameters",
+			swimID: "9",
+			form: url.Values{
+				"date":       []string{"2024-02-01"},
+				"distance_m": []string{"2000"},
+				"assessment": []string{"2"},
+			},
+			setupMock: func(m *testutils.MockSwimModel) {
+				m.UpdateFunc = func(id int, userId int, date time.Time, distanceM int, assessment int) error {
+					assert.Equal(t, 9, id)
+					return nil
+				}
+			},
+			expectedStatus:   http.StatusSeeOther,
+			expectedLocation: "/swims?direction=desc&sort=date",
 		},
 		{
 			name:   "swim not found on update",

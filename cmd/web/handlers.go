@@ -5,6 +5,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/rockstaedt/swimmate/internal/models"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -16,11 +17,23 @@ const (
 )
 
 type swimsPageData struct {
-	Swims     []*models.Swim
+	Swims     []*swimRowTemplateData
 	Offset    int
 	Sort      string
 	Direction string
 	LoadMore  *loadMoreData
+}
+
+type swimRowTemplateData struct {
+	Swim      *models.Swim
+	Sort      string
+	Direction string
+}
+
+type editSwimPageData struct {
+	Swim      *models.Swim
+	Sort      string
+	Direction string
 }
 
 type loadMoreData struct {
@@ -131,7 +144,14 @@ func (app *application) editSwim(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.render(w, r, http.StatusOK, "swim-edit.tmpl", app.newTemplateData(r, swim))
+	sort, direction := parseSwimSort(r)
+	data := editSwimPageData{
+		Swim:      swim,
+		Sort:      sort,
+		Direction: direction,
+	}
+
+	app.render(w, r, http.StatusOK, "swim-edit.tmpl", app.newTemplateData(r, data))
 }
 
 func (app *application) swimsList(w http.ResponseWriter, r *http.Request) {
@@ -144,8 +164,13 @@ func (app *application) swimsList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	swimRows := make([]*swimRowTemplateData, len(swims))
+	for i, swim := range swims {
+		swimRows[i] = newSwimRowTemplateData(swim, sort, direction)
+	}
+
 	data := swimsPageData{
-		Swims:     swims,
+		Swims:     swimRows,
 		Offset:    0,
 		Sort:      sort,
 		Direction: direction,
@@ -174,7 +199,7 @@ func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
 		}
 
 		for _, swim := range swims {
-			app.renderPartial(w, r, swimsTemplate, "swim-row", swim)
+			app.renderPartial(w, r, swimsTemplate, "swim-row", newSwimRowTemplateData(swim, sort, direction))
 		}
 
 		// Add the new button row or end
@@ -192,8 +217,13 @@ func (app *application) swimsMore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	swimRows := make([]*swimRowTemplateData, len(swims))
+	for i, swim := range swims {
+		swimRows[i] = newSwimRowTemplateData(swim, sort, direction)
+	}
+
 	data := swimsPageData{
-		Swims:     swims,
+		Swims:     swimRows,
 		Offset:    offset,
 		Sort:      sort,
 		Direction: direction,
@@ -280,6 +310,9 @@ func (app *application) updateSwim(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sort := normalizeSwimSortValue(r.PostForm.Get("sort"))
+	direction := normalizeSortDirectionValue(r.PostForm.Get("direction"))
+
 	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
 	err = app.swims.Update(swimID, userId, date, distanceM, assessment)
 	if err != nil {
@@ -293,20 +326,16 @@ func (app *application) updateSwim(w http.ResponseWriter, r *http.Request) {
 
 	app.sessionManager.Put(r.Context(), "flashText", "Successfully updated!")
 
-	http.Redirect(w, r, "/swims", http.StatusSeeOther)
+	values := url.Values{}
+	values.Set("sort", sort)
+	values.Set("direction", direction)
+
+	http.Redirect(w, r, "/swims?"+values.Encode(), http.StatusSeeOther)
 }
 
 func parseSwimSort(r *http.Request) (string, string) {
-	sort := strings.ToLower(r.URL.Query().Get("sort"))
-	if sort != models.SwimSortDate && sort != models.SwimSortDistance && sort != models.SwimSortAssessment {
-		sort = models.SwimSortDate
-	}
-
-	direction := strings.ToLower(r.URL.Query().Get("direction"))
-	if direction != models.SortDirectionAsc && direction != models.SortDirectionDesc {
-		direction = models.SortDirectionDesc
-	}
-
+	sort := normalizeSwimSortValue(r.URL.Query().Get("sort"))
+	direction := normalizeSortDirectionValue(r.URL.Query().Get("direction"))
 	return sort, direction
 }
 
@@ -320,4 +349,28 @@ func newLoadMoreData(hasMore bool, nextOffset int, sort, direction string) *load
 		Sort:       sort,
 		Direction:  direction,
 	}
+}
+
+func newSwimRowTemplateData(swim *models.Swim, sort, direction string) *swimRowTemplateData {
+	return &swimRowTemplateData{
+		Swim:      swim,
+		Sort:      sort,
+		Direction: direction,
+	}
+}
+
+func normalizeSwimSortValue(sort string) string {
+	sort = strings.ToLower(sort)
+	if sort != models.SwimSortDate && sort != models.SwimSortDistance && sort != models.SwimSortAssessment {
+		return models.SwimSortDate
+	}
+	return sort
+}
+
+func normalizeSortDirectionValue(direction string) string {
+	direction = strings.ToLower(direction)
+	if direction != models.SortDirectionAsc && direction != models.SortDirectionDesc {
+		return models.SortDirectionDesc
+	}
+	return direction
 }
