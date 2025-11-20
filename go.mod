@@ -14,7 +14,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/ory/dockertest/v3 v3.12.0
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/crypto v0.44.0
+	golang.org/x/crypto v0.45.0
 )
 
 require (
