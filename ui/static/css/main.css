@@ -902,7 +902,8 @@ button {
             margin-top: 2.5rem;
             padding-top: 2rem;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
+            display: flex;
+            justify-content: center;
 
             .about-link {
                 display: inline-flex;
