@@ -897,6 +897,34 @@ button {
                 height: 5.4rem;
             }
         }
+
+        .login-footer {
+            margin-top: 2.5rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+
+            .about-link {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.8rem;
+                padding: 1rem 2rem;
+                font-size: 1.6rem;
+                color: var(--color-text-muted);
+                text-decoration: none;
+                border-radius: var(--border-radius);
+                transition: all var(--transition-base);
+
+                i {
+                    font-size: 1.8rem;
+                }
+
+                &:hover {
+                    color: var(--color-blue-accent);
+                    background: rgba(6, 182, 212, 0.1);
+                }
+            }
+        }
     }
 }
 
