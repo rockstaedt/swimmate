@@ -1080,3 +1080,123 @@ func TestSwimSummaryHelperMethods(t *testing.T) {
 		assert.Equal(t, 2500, monthMap.DistanceM)
 	})
 }
+
+func TestSwimModelDelete(t *testing.T) {
+	tests := []struct {
+		name        string
+		swimId      int
+		userId      int
+		setupMock   func(mock sqlmock.Sqlmock)
+		expectError bool
+		errorType   error
+	}{
+		{
+			name:   "successful delete",
+			swimId: 5,
+			userId: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("DELETE FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(5, 1).
+					WillReturnResult(sqlmock.NewResult(0, 1))
+			},
+			expectError: false,
+		},
+		{
+			name:   "swim not found",
+			swimId: 999,
+			userId: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("DELETE FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(999, 1).
+					WillReturnResult(sqlmock.NewResult(0, 0))
+			},
+			expectError: true,
+			errorType:   ErrNoRecord,
+		},
+		{
+			name:   "swim belongs to different user",
+			swimId: 5,
+			userId: 2,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("DELETE FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(5, 2).
+					WillReturnResult(sqlmock.NewResult(0, 0))
+			},
+			expectError: true,
+			errorType:   ErrNoRecord,
+		},
+		{
+			name:   "database error on delete",
+			swimId: 5,
+			userId: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("DELETE FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(5, 1).
+					WillReturnError(errors.New("database connection lost"))
+			},
+			expectError: true,
+		},
+		{
+			name:   "delete with zero swim ID",
+			swimId: 0,
+			userId: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("DELETE FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(0, 1).
+					WillReturnResult(sqlmock.NewResult(0, 0))
+			},
+			expectError: true,
+			errorType:   ErrNoRecord,
+		},
+		{
+			name:   "delete with negative swim ID",
+			swimId: -5,
+			userId: 1,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("DELETE FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(-5, 1).
+					WillReturnResult(sqlmock.NewResult(0, 0))
+			},
+			expectError: true,
+			errorType:   ErrNoRecord,
+		},
+		{
+			name:   "delete with zero user ID",
+			swimId: 5,
+			userId: 0,
+			setupMock: func(mock sqlmock.Sqlmock) {
+				mock.ExpectExec("DELETE FROM swims WHERE id = \\$1 AND user_id = \\$2").
+					WithArgs(5, 0).
+					WillReturnResult(sqlmock.NewResult(0, 0))
+			},
+			expectError: true,
+			errorType:   ErrNoRecord,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db, mock, err := sqlmock.New()
+			assert.NoError(t, err)
+			defer func() {
+				_ = db.Close()
+			}()
+
+			tt.setupMock(mock)
+
+			model := NewSwimModel(db)
+			err = model.Delete(tt.swimId, tt.userId)
+
+			if tt.expectError {
+				assert.Error(t, err)
+				if tt.errorType != nil {
+					assert.ErrorIs(t, err, tt.errorType)
+				}
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}

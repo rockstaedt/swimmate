@@ -52,6 +52,7 @@ type SwimModel interface {
 	GetPaginated(userId int, limit int, offset int, sort string, direction string) ([]*Swim, error)
 	Insert(date time.Time, distanceM int, assessment int, userId int) error
 	Update(id int, userId int, date time.Time, distanceM int, assessment int) error
+	Delete(id int, userId int) error
 	Summarize(userId int) *SwimSummary
 }
 
@@ -218,6 +219,26 @@ func (sw *swimModel) Update(id int, userId int, date time.Time, distanceM int, a
 	stmt := `UPDATE swims SET date = $1, distance_m = $2, assessment = $3 WHERE id = $4 AND user_id = $5;`
 
 	result, err := sw.DB.Exec(stmt, date, distanceM, assessment, id, userId)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrNoRecord
+	}
+
+	return nil
+}
+
+func (sw *swimModel) Delete(id int, userId int) error {
+	stmt := `DELETE FROM swims WHERE id = $1 AND user_id = $2;`
+
+	result, err := sw.DB.Exec(stmt, id, userId)
 	if err != nil {
 		return err
 	}

@@ -14,6 +14,7 @@ type MockSwimModel struct {
 	GetPaginatedFunc func(userId int, limit int, offset int, sort string, direction string) ([]*models.Swim, error)
 	InsertFunc       func(date time.Time, distanceM int, assessment int, userId int) error
 	UpdateFunc       func(id int, userId int, date time.Time, distanceM int, assessment int) error
+	DeleteFunc       func(id int, userId int) error
 	SummarizeFunc    func(userId int) *models.SwimSummary
 }
 
@@ -55,6 +56,13 @@ func (m *MockSwimModel) Insert(date time.Time, distanceM int, assessment int, us
 func (m *MockSwimModel) Update(id int, userId int, date time.Time, distanceM int, assessment int) error {
 	if m.UpdateFunc != nil {
 		return m.UpdateFunc(id, userId, date, distanceM, assessment)
+	}
+	return nil
+}
+
+func (m *MockSwimModel) Delete(id int, userId int) error {
+	if m.DeleteFunc != nil {
+		return m.DeleteFunc(id, userId)
 	}
 	return nil
 }
