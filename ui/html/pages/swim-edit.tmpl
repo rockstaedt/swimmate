@@ -17,6 +17,7 @@
                       method="POST"
                       action="/swims/edit/{{$swim.Id}}"
                       hx-put="/swims/edit/{{$swim.Id}}"
+                      hx-encoding="application/x-www-form-urlencoded"
                       hx-target="body"
                       hx-push-url="true">
                     <div class="form-row">
