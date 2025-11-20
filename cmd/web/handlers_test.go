@@ -698,6 +698,46 @@ func TestStoreSwim(t *testing.T) {
 			},
 			expectedStatus: http.StatusInternalServerError,
 		},
+		{
+			name: "zero distance",
+			formData: url.Values{
+				"date":       []string{"2024-01-15"},
+				"distance_m": []string{"0"},
+				"assessment": []string{"2"},
+			},
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name: "negative distance",
+			formData: url.Values{
+				"date":       []string{"2024-01-15"},
+				"distance_m": []string{"-100"},
+				"assessment": []string{"2"},
+			},
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name: "negative assessment",
+			formData: url.Values{
+				"date":       []string{"2024-01-15"},
+				"distance_m": []string{"1500"},
+				"assessment": []string{"-1"},
+			},
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name: "assessment too large",
+			formData: url.Values{
+				"date":       []string{"2024-01-15"},
+				"distance_m": []string{"1500"},
+				"assessment": []string{"3"},
+			},
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusBadRequest,
+		},
 	}
 
 	for _, tt := range tests {
@@ -929,6 +969,50 @@ func TestUpdateSwim(t *testing.T) {
 			},
 			expectedStatus:   http.StatusSeeOther,
 			expectedLocation: "/swims?direction=desc&sort=date",
+		},
+		{
+			name:   "zero distance",
+			swimID: "5",
+			form: url.Values{
+				"date":       []string{"2024-02-01"},
+				"distance_m": []string{"0"},
+				"assessment": []string{"2"},
+			},
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:   "negative distance",
+			swimID: "5",
+			form: url.Values{
+				"date":       []string{"2024-02-01"},
+				"distance_m": []string{"-100"},
+				"assessment": []string{"2"},
+			},
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:   "negative assessment",
+			swimID: "5",
+			form: url.Values{
+				"date":       []string{"2024-02-01"},
+				"distance_m": []string{"2000"},
+				"assessment": []string{"-1"},
+			},
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:   "assessment too large",
+			swimID: "5",
+			form: url.Values{
+				"date":       []string{"2024-02-01"},
+				"distance_m": []string{"2000"},
+				"assessment": []string{"3"},
+			},
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusBadRequest,
 		},
 	}
 
