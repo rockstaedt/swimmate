@@ -184,4 +184,4 @@ For brand-new files, use the one-liner
 - Subject line must be 50 characters or less
 - Use imperative mood (e.g., "Fix bug" not "Fixed bug")
 - Keep commits atomic and focused on a single change
-- Before each commit, run tests and linters to ensure code quality
+- Before each commit, run tests and linters to ensure code quality. Do not build the project.
