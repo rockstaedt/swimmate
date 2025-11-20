@@ -959,3 +959,115 @@ func TestUpdateSwim(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteSwim(t *testing.T) {
+	tests := []struct {
+		name             string
+		swimID           string
+		setupMock        func(*testutils.MockSwimModel)
+		expectedStatus   int
+		expectedLocation string
+		expectFlash      bool
+	}{
+		{
+			name:   "successful delete",
+			swimID: "5",
+			setupMock: func(m *testutils.MockSwimModel) {
+				m.DeleteFunc = func(id int, userId int) error {
+					assert.Equal(t, 5, id)
+					assert.Equal(t, 1, userId)
+					return nil
+				}
+			},
+			expectedStatus:   http.StatusSeeOther,
+			expectedLocation: "/swims",
+			expectFlash:      true,
+		},
+		{
+			name:   "swim not found",
+			swimID: "999",
+			setupMock: func(m *testutils.MockSwimModel) {
+				m.DeleteFunc = func(id int, userId int) error {
+					return models.ErrNoRecord
+				}
+			},
+			expectedStatus: http.StatusNotFound,
+			expectFlash:    false,
+		},
+		{
+			name:   "swim belongs to different user",
+			swimID: "5",
+			setupMock: func(m *testutils.MockSwimModel) {
+				m.DeleteFunc = func(id int, userId int) error {
+					return models.ErrNoRecord
+				}
+			},
+			expectedStatus: http.StatusNotFound,
+			expectFlash:    false,
+		},
+		{
+			name:   "database error on delete",
+			swimID: "5",
+			setupMock: func(m *testutils.MockSwimModel) {
+				m.DeleteFunc = func(id int, userId int) error {
+					return errors.New("database error")
+				}
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectFlash:    false,
+		},
+		{
+			name:           "invalid swim ID",
+			swimID:         "abc",
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusNotFound,
+			expectFlash:    false,
+		},
+		{
+			name:           "negative swim ID",
+			swimID:         "-5",
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusNotFound,
+			expectFlash:    false,
+		},
+		{
+			name:           "zero swim ID",
+			swimID:         "0",
+			setupMock:      func(m *testutils.MockSwimModel) {},
+			expectedStatus: http.StatusNotFound,
+			expectFlash:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := newTestApplication()
+
+			mockSwims := &testutils.MockSwimModel{}
+			tt.setupMock(mockSwims)
+			app.swims = mockSwims
+
+			rr := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodDelete, "/swims/"+tt.swimID, nil)
+
+			ctx, _ := app.sessionManager.Load(r.Context(), "")
+			app.sessionManager.Put(ctx, "authenticatedUserID", 1)
+			ctx = context.WithValue(ctx, httprouter.ParamsKey, httprouter.Params{{Key: "id", Value: tt.swimID}})
+			r = r.WithContext(ctx)
+
+			app.deleteSwim(rr, r)
+
+			assert.Equal(t, tt.expectedStatus, rr.Code)
+
+			if tt.expectedLocation != "" {
+				assert.Equal(t, tt.expectedLocation, rr.Header().Get("Location"))
+			}
+
+			if tt.expectFlash {
+				flashText := app.sessionManager.GetString(ctx, "flashText")
+				assert.NotEmpty(t, flashText)
+				assert.Contains(t, flashText, "deleted")
+			}
+		})
+	}
+}

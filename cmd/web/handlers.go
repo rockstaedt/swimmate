@@ -319,6 +319,30 @@ func (app *application) updateSwim(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/swims?"+values.Encode(), http.StatusSeeOther)
 }
 
+func (app *application) deleteSwim(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	swimID, err := strconv.Atoi(params.ByName("id"))
+	if err != nil || swimID <= 0 {
+		app.notFound(w)
+		return
+	}
+
+	userId := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+	err = app.swims.Delete(swimID, userId)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			app.notFound(w)
+		} else {
+			app.serverError(w, r, err)
+		}
+		return
+	}
+
+	app.sessionManager.Put(r.Context(), "flashText", "Successfully deleted!")
+
+	http.Redirect(w, r, "/swims", http.StatusSeeOther)
+}
+
 func parseSwimSort(r *http.Request) (string, string) {
 	sort := normalizeSwimSortValue(r.URL.Query().Get("sort"))
 	direction := normalizeSortDirectionValue(r.URL.Query().Get("direction"))
