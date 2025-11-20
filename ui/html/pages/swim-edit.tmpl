@@ -53,6 +53,13 @@
                             </button>
                         </div>
                     </form>
+                    <form class="delete-form" method="POST" action="/swims/delete/{{$swim.Id}}"
+                          onsubmit="return confirm('Are you sure you want to delete this swim? This action cannot be undone.');">
+                        <button type="submit" class="btn-delete">
+                            <i class="fas fa-trash"></i>
+                            Delete
+                        </button>
+                    </form>
                 </div>
             </div>
         {{else}}

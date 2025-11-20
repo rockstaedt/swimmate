@@ -1029,6 +1029,47 @@ button {
             }
         }
     }
+
+    .delete-form {
+        margin-top: 3rem;
+        padding-top: 3rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+        .btn-delete {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            padding: 1.4rem 2rem;
+            border-radius: var(--border-radius);
+            border: 2px solid rgba(239, 68, 68, 0.4);
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--color-error);
+            font-size: 1.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all var(--transition-base);
+
+            i {
+                font-size: 1.8rem;
+            }
+
+            &:hover {
+                background: var(--color-error);
+                color: white;
+                border-color: var(--color-error);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-lg);
+            }
+
+            &:active {
+                transform: translateY(0);
+                box-shadow: var(--shadow);
+            }
+        }
+    }
 }
 
 .form {
