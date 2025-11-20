@@ -800,7 +800,7 @@ button {
     box-shadow: var(--shadow-lg);
     z-index: 1500;
     transition: transform var(--transition-base), box-shadow var(--transition-base),
-        background-color var(--transition-base);
+    background-color var(--transition-base);
 
     &::after {
         content: "";
@@ -1254,8 +1254,6 @@ button {
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 2rem;
-        padding: 1rem 0;
 
         > i {
             font-size: 2.4rem;
