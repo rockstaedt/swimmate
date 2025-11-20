@@ -5,7 +5,7 @@
         {{$editURL := printf "/swims/edit/%d?sort=%s&direction=%s" $swim.Id $root.Data.Sort $root.Data.Direction}}
         <tr class="swim-row"
             onclick="window.location.href='{{$editURL}}'"
-            onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href='{{$editURL}}'; }"
+            onkeydown="if (event.key === 'Enter') { event.preventDefault(); window.location.href='{{$editURL}}'; } else if (event.key === ' ' && event.target === document.activeElement) { event.preventDefault(); window.location.href='{{$editURL}}'; }"
             role="button"
             tabindex="0"
             aria-label="Edit swim from {{$swim.Date.Format "2006-01-02"}}">
