@@ -362,7 +362,14 @@ func (app *application) deleteSwim(w http.ResponseWriter, r *http.Request) {
 	app.sessionManager.Put(r.Context(), "flashText", "Successfully deleted!")
 	app.sessionManager.Put(r.Context(), "flashType", "flash-success")
 
-	http.Redirect(w, r, "/swims", http.StatusSeeOther)
+	sort := normalizeSwimSortValue(r.URL.Query().Get("sort"))
+	direction := normalizeSortDirectionValue(r.URL.Query().Get("direction"))
+
+	values := url.Values{}
+	values.Set("sort", sort)
+	values.Set("direction", direction)
+
+	http.Redirect(w, r, "/swims?"+values.Encode(), http.StatusSeeOther)
 }
 
 func parseSwimSort(r *http.Request) (string, string) {
